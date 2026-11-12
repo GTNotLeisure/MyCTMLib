@@ -27,8 +27,8 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 public final class RedstoneTorchModel {
 
     public static final RedstoneTorchModel INSTANCE = new RedstoneTorchModel();
-    public static final String MODEL = "myctmlib:block/redstone_torch_on";
-    public static final String TEXTURE = "myctmlib:blocks/redstone_torch";
+    public static final String MODEL = "myctmlib:block/mc/redstone_torch_on";
+    public static final String TEXTURE = "myctmlib:blocks/mc/redstone_torch";
 
     private static final int UNROTATED = ModelOrientation.index(ForgeDirection.NORTH, ForgeDirection.UP);
     /** Vanilla wall torches are lifted by 0.2 blocks and lean 0.25 blocks over their 0.625 block height. */

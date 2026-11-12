@@ -13,6 +13,7 @@ public enum Mixins implements IMixins {
             "AccessorSimpleResource",
             "MixinItemRenderer",
             "MixinRenderBlocks",
+            "MixinRenderBlocksRepeater",
             "MixinRenderBlocksTorch",
             "MixinTextureMap",
             "MixinSimpleReloadableResourceManager")
