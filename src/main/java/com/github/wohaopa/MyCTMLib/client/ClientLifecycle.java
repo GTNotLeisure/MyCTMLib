@@ -2,7 +2,9 @@ package com.github.wohaopa.MyCTMLib.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
+import net.minecraftforge.common.MinecraftForge;
 
+import com.github.wohaopa.MyCTMLib.client.model.RedstoneTorchModel;
 import com.github.wohaopa.MyCTMLib.client.resource.BeeJsonModelPackState;
 import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerializer;
 import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerializer.MyCTMLibMetadataSection;
@@ -22,8 +24,12 @@ public class ClientLifecycle {
         Minecraft minecraft = Minecraft.getMinecraft();
         ((AccessorMinecraft) minecraft).getMetadataSerializer()
             .registerMetadataSectionType(new MyCTMLibMetadataSectionSerializer(), MyCTMLibMetadataSection.class);
-        if (Mods.AppliedEnergistics2.isModLoaded()) {
-            Ae2Integration.registerResources();
+
+            // Loads the replacement redstone torch model during every block-atlas stitch.
+            MinecraftForge.EVENT_BUS.register(RedstoneTorchModel.INSTANCE);
+            
+            if (Mods.AppliedEnergistics2.isModLoaded()) {
+                Ae2Integration.registerResources();
         }
         if (minecraft.getResourceManager() instanceof IReloadableResourceManager manager) {
             manager.registerReloadListener(BeeJsonModelPackState.INSTANCE);

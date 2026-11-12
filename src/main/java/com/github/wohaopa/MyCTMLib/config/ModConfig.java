@@ -13,6 +13,10 @@ public class ModConfig {
     @Config.DefaultBoolean(false)
     public static boolean debug = false;
 
+    @Config.Comment("Replace the placed redstone torch with MyCTMLib's JSON model. Reload resources after changing.")
+    @Config.DefaultBoolean(true)
+    public static boolean redstoneTorchJsonModel = true;
+
     public static void registerConfig() throws ConfigException {
         ConfigurationManager.registerConfig(ModConfig.class);
     }

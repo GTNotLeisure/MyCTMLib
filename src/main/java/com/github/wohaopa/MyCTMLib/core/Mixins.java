@@ -13,6 +13,7 @@ public enum Mixins implements IMixins {
             "AccessorSimpleResource",
             "MixinItemRenderer",
             "MixinRenderBlocks",
+            "MixinRenderBlocksTorch",
             "MixinTextureMap",
             "MixinSimpleReloadableResourceManager")
         .setPhase(Phase.EARLY)),
