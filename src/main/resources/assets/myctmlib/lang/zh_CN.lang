@@ -5,3 +5,5 @@ myctmlib.config.general.redstoneTorchJsonModel=红石火把 JSON 模型
 myctmlib.config.general.redstoneTorchJsonModel.tooltip=使用 MyCTMLib 自带的 JSON 模型替换已放置的红石火把。修改后需要重新加载资源。
 myctmlib.config.general.redstoneRepeaterJsonModel=红石中继器 JSON 模型
 myctmlib.config.general.redstoneRepeaterJsonModel.tooltip=使用 MyCTMLib 自带的 JSON 模型替换已放置的红石中继器。修改后需要重新加载资源。
+myctmlib.config.general.redstoneComparatorJsonModel=红石比较器 JSON 模型
+myctmlib.config.general.redstoneComparatorJsonModel.tooltip=使用 MyCTMLib 自带的 JSON 模型替换已放置的红石比较器。修改后需要重新加载资源。

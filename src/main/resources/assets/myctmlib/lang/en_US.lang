@@ -5,3 +5,5 @@ myctmlib.config.general.redstoneTorchJsonModel=Redstone torch JSON model
 myctmlib.config.general.redstoneTorchJsonModel.tooltip=Replace the placed redstone torch with MyCTMLib's JSON model. Reload resources after changing.
 myctmlib.config.general.redstoneRepeaterJsonModel=Redstone repeater JSON models
 myctmlib.config.general.redstoneRepeaterJsonModel.tooltip=Replace placed redstone repeaters with MyCTMLib's JSON models. Reload resources after changing.
+myctmlib.config.general.redstoneComparatorJsonModel=Redstone comparator JSON models
+myctmlib.config.general.redstoneComparatorJsonModel.tooltip=Replace placed redstone comparators with MyCTMLib's JSON models. Reload resources after changing.

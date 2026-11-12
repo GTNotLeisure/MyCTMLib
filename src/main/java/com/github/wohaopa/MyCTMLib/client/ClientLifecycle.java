@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.github.wohaopa.MyCTMLib.client.model.RedstoneComparatorModel;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneRepeaterModel;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneTorchModel;
 import com.github.wohaopa.MyCTMLib.client.resource.BeeJsonModelPackState;
@@ -26,9 +27,10 @@ public class ClientLifecycle {
         ((AccessorMinecraft) minecraft).getMetadataSerializer()
             .registerMetadataSectionType(new MyCTMLibMetadataSectionSerializer(), MyCTMLibMetadataSection.class);
 
-        // Loads the replacement redstone torch and repeater models during every block-atlas stitch.
+        // Loads the replacement redstone torch, repeater and comparator models during every block-atlas stitch.
         MinecraftForge.EVENT_BUS.register(RedstoneTorchModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneRepeaterModel.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(RedstoneComparatorModel.INSTANCE);
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             Ae2Integration.registerResources();
         }
