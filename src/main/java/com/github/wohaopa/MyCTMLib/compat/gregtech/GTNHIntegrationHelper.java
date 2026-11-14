@@ -1,12 +1,10 @@
 package com.github.wohaopa.MyCTMLib.compat.gregtech;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.github.wohaopa.MyCTMLib.mixins.late.AccessorGTMultiTextureRender;
@@ -15,7 +13,6 @@ import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
 
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.IBlockContainer;
-import gregtech.api.interfaces.IBlockWithClientMeta;
 import gregtech.api.interfaces.IBlockWithTextures;
 import gregtech.api.interfaces.ITexture;
 import gregtech.api.interfaces.tileentity.ITexturedTileEntity;
@@ -36,20 +33,11 @@ public class GTNHIntegrationHelper {
     public static IIcon getIcon(IBlockAccess blockAccess, int x, int y, int z, ForgeDirection forgeDirection) {
         Block block = blockAccess.getBlock(x, y, z);
 
-        int blockMetadata;
-
-        if (block instanceof IBlockWithClientMeta clientMetaBlock) {
-            World world = Minecraft.getMinecraft().theWorld;
-            blockMetadata = clientMetaBlock.getClientMeta(world, x, y, z);
-        } else {
-            blockMetadata = blockAccess.getBlockMetadata(x, y, z);
-        }
-
         if (block instanceof IBlockWithTextures texturedBlock) {
-            ITexture[][] textures = texturedBlock.getTextures(blockMetadata);
+            ITexture[][] textures = texturedBlock.getTextures(blockAccess, x, y, z);
             if (textures != null && forgeDirection.ordinal() < textures.length) {
                 // Active coils keep their connection texture on the foreground layer, every other block on the base.
-                int layer = block instanceof BlockCasings5 && blockMetadata >= 16 ? 1 : 0;
+                int layer = block instanceof BlockCasings5 && blockAccess.getBlockMetadata(x, y, z) >= 16 ? 1 : 0;
                 IIcon icon = resolveLayerIcon(textures[forgeDirection.ordinal()], layer, forgeDirection);
                 if (icon != null) {
                     return icon;
