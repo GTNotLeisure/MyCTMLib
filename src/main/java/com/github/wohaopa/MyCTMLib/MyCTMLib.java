@@ -14,7 +14,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(
     modid = MyCTMLib.MODID,
-    version = "v1.2.5_28x",
+    version = "v1.4.4_290",
     name = "MyCTMLib",
     dependencies = "required-after:gtnhlib;",
     guiFactory = "com.github.wohaopa.MyCTMLib.client.config.MyCTMLibGuiFactory",
