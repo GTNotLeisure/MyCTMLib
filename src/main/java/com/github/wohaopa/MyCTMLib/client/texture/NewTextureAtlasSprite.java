@@ -20,10 +20,7 @@ public class NewTextureAtlasSprite extends TextureAtlasSprite {
         if (gridWidth < 1 || gridHeight < 1) {
             throw new IllegalArgumentException("Mipmap grid dimensions must be positive");
         }
-        // A connection sheet stores one complete variant per two by two block of grid cells, so mipmaps are generated
-        // per
-        // variant. Generating them per cell would give every cell its own average at coarse levels, which turns into a
-        // visible seam along every block border once distant terrain samples those levels.
+        // Generate mipmaps per whole variant to avoid seams between its quadrants.
         this.mipmapGridWidth = Math.max(1, gridWidth / 2);
         this.mipmapGridHeight = Math.max(1, gridHeight / 2);
     }

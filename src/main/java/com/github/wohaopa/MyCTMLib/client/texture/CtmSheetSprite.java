@@ -1,11 +1,17 @@
 package com.github.wohaopa.MyCTMLib.client.texture;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.data.AnimationFrame;
 import net.minecraft.client.resources.data.AnimationMetadataSection;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
@@ -15,22 +21,6 @@ import com.github.wohaopa.MyCTMLib.mixins.early.AccessorTextureAtlasSprite;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * Connection sheet sprite that lays its units out with padding before the atlas stitches it.
- * <p>
- * A resource pack keeps shipping one sheet texture, and the sprite is normally registered under that sheet resource
- * name. When an incompatible sprite already owns that name, the atlas can hold this sheet under a derived name instead;
- * either way the image handed to the atlas is built here, not read from the registered name. Every unit is surrounded
- * by copies of its own edge texels, so filtered or mipmapped sampling next to a block border reads that unit again
- * rather than whichever unit happens to sit next to it inside the sheet.
- * <p>
- * A unit is the piece a face is drawn from: one cell for the full, horizontal, vertical, top, repeat and random
- * layouts, and a two by two block of cells for the compact layout, where one unit holds a whole connection variant.
- * Cells are always addressed top to bottom, left to right.
- * <p>
- * Animation frames are padded the same way. Sheets that request {@code interpolate} blend between frames, sheets that
- * do not keep the original frame stepping.
- */
 @SideOnly(Side.CLIENT)
 public class CtmSheetSprite extends InterpolatedIcon {
 
@@ -77,14 +67,19 @@ public class CtmSheetSprite extends InterpolatedIcon {
         int padding, boolean interpolate) {
         // The parent halves the grid to get one mipmap region per unit, so ask for twice the unit grid.
         super(name, columns * COMPACT_GRID, rows * COMPACT_GRID);
+        if (padding < 0 || sheet.getWidth() < columns || sheet.getWidth() % columns != 0) {
+            throw new IllegalArgumentException("Invalid connection sheet dimensions or padding");
+        }
         this.sheetLocation = sheetLocation;
         this.sheet = sheet;
         this.columns = columns;
         this.rows = rows;
         this.unitSize = Math.max(1, sheet.getWidth() / columns);
-        this.cellSize = unitSize + padding * 2;
+        this.cellSize = Math.addExact(unitSize, Math.multiplyExact(padding, 2));
         this.interpolate = interpolate;
-        this.units = new IIcon[columns * rows];
+        this.units = new IIcon[Math.multiplyExact(columns, rows)];
+        Math.multiplyExact(cellSize, columns);
+        Math.multiplyExact(cellSize, rows);
         for (int unit = 0; unit < units.length; unit++) {
             units[unit] = new UnitIcon(unit);
         }
@@ -99,32 +94,29 @@ public class CtmSheetSprite extends InterpolatedIcon {
         return units;
     }
 
-    /**
-     * Returns whether this sprite is compatible with a registration that names the same connection texture: same unit
-     * layout, same source image and same interpolation. Only then can both registrations share one sprite instead of
-     * one of them taking the other's atlas slot. A sheet of another layout is never compatible, because the compact
-     * consumer expects exactly four variant units.
-     *
-     * @param image       the sheet image of the other registration
-     * @param interpolate whether that registration asks for interpolated animation frames
-     * @return whether source, layout and interpolation all match
-     */
+    /** Checks compatibility with the default compact layout and padding. */
     public boolean isSameSource(BufferedImage image, boolean interpolate) {
+        return isSameSource(image, COMPACT_GRID, COMPACT_GRID, DEFAULT_PADDING, interpolate);
+    }
+
+    /** Allows registrations to share a sprite only when their layout, padding, animation and pixels match. */
+    public boolean isSameSource(BufferedImage image, int columns, int rows, int padding, boolean interpolate) {
         if (image == null || this.interpolate != interpolate) {
             return false;
         }
-        if (columns != COMPACT_GRID || rows != COMPACT_GRID || units.length != COMPACT_GRID * COMPACT_GRID) {
+        if (this.columns != columns || this.rows != rows || cellSize - unitSize != (long) padding * 2) {
             return false;
         }
         if (image.getWidth() != sheet.getWidth() || image.getHeight() != sheet.getHeight()) {
             return false;
         }
+        if (image == sheet) return true;
+        int[] expected = new int[sheet.getWidth()];
+        int[] actual = new int[sheet.getWidth()];
         for (int y = 0; y < sheet.getHeight(); y++) {
-            for (int x = 0; x < sheet.getWidth(); x++) {
-                if (image.getRGB(x, y) != sheet.getRGB(x, y)) {
-                    return false;
-                }
-            }
+            sheet.getRGB(0, y, expected.length, 1, expected, 0, expected.length);
+            image.getRGB(0, y, actual.length, 1, actual, 0, actual.length);
+            if (!Arrays.equals(expected, actual)) return false;
         }
         return true;
     }
@@ -138,19 +130,43 @@ public class CtmSheetSprite extends InterpolatedIcon {
     public boolean load(IResourceManager manager, ResourceLocation location) {
         try {
             IResource resource = manager.getResource(sheetLocation);
-            // One animation frame is one whole unit grid, which is not square for the sheet layouts that hold several
-            // cells per unit.
-            int frameHeight = unitSize * rows;
-            int frameCount = Math.max(1, sheet.getHeight() / frameHeight);
-            BufferedImage[] frames = new BufferedImage[frameCount];
-            for (int frame = 0; frame < frameCount; frame++) {
-                frames[frame] = layout(frame * frameHeight);
-            }
+            try (InputStream stream = resource.getInputStream()) {
+                AnimationMetadataSection animation = (AnimationMetadataSection) resource.getMetadata("animation");
+                int frameHeight = Math.multiplyExact(unitSize, rows);
+                int frameCount = animation == null ? 1 : Math.max(1, sheet.getHeight() / frameHeight);
+                List<int[][]> frames = new ArrayList<>(frameCount);
+                for (int frame = 0; frame < frameCount; frame++) {
+                    BufferedImage image = layout(frame * frameHeight);
+                    int[][] data = { ((DataBufferInt) image.getRaster()
+                        .getDataBuffer()).getData() };
+                    fixTransparentPixels(data);
+                    frames.add(data);
+                }
 
-            AnimationMetadataSection animation = (AnimationMetadataSection) resource.getMetadata("animation");
-            loadSprite(frames, animation, false);
-            return false;
-        } catch (IOException e) {
+                width = cellSize * columns;
+                height = cellSize * rows;
+                if (animation != null) {
+                    if (animation.getFrameCount() == 0) {
+                        List<AnimationFrame> sequence = new ArrayList<>(frameCount);
+                        for (int frame = 0; frame < frameCount; frame++) sequence.add(new AnimationFrame(frame, -1));
+                        animation = new AnimationMetadataSection(sequence, width, height, animation.getFrameTime());
+                    } else {
+                        for (int index : animation.getFrameIndexSet()) {
+                            if (index < 0 || index >= frameCount) {
+                                throw new IllegalArgumentException(
+                                    "Invalid connection sheet animation frame: " + index);
+                            }
+                        }
+                    }
+                }
+                // Vanilla loadSprite accepts mipmap images and assumes square animation frames.
+                setFramesTextureData(frames);
+                ((AccessorTextureAtlasSprite) this).setAnimationMetadata(animation);
+                frameCounter = 0;
+                tickCounter = 0;
+                return false;
+            }
+        } catch (IOException | RuntimeException e) {
             return true;
         }
     }
@@ -187,7 +203,9 @@ public class CtmSheetSprite extends InterpolatedIcon {
     private BufferedImage layout(int frameOffset) {
         int padding = (cellSize - unitSize) / 2;
         BufferedImage target = new BufferedImage(cellSize * columns, cellSize * rows, BufferedImage.TYPE_INT_ARGB);
-        int sheetWidth = sheet.getWidth();
+        int targetWidth = target.getWidth();
+        int[] pixels = ((DataBufferInt) target.getRaster()
+            .getDataBuffer()).getData();
         int sheetHeight = sheet.getHeight();
         for (int unit = 0; unit < units.length; unit++) {
             int column = unit % columns;
@@ -199,10 +217,14 @@ public class CtmSheetSprite extends InterpolatedIcon {
             for (int y = 0; y < cellSize; y++) {
                 // A sheet that is shorter than a whole frame keeps its last row instead of reading past the image.
                 int unitY = Math.min(sheetHeight - 1, sourceY + clamp(y - padding));
-                for (int x = 0; x < cellSize; x++) {
-                    int unitX = Math.min(sheetWidth - 1, sourceX + clamp(x - padding));
-                    target.setRGB(targetX + x, targetY + y, sheet.getRGB(unitX, unitY));
-                }
+                int offset = (targetY + y) * targetWidth + targetX;
+                sheet.getRGB(sourceX, unitY, unitSize, 1, pixels, offset + padding, targetWidth);
+                Arrays.fill(pixels, offset, offset + padding, pixels[offset + padding]);
+                Arrays.fill(
+                    pixels,
+                    offset + padding + unitSize,
+                    offset + cellSize,
+                    pixels[offset + padding + unitSize - 1]);
             }
         }
         return target;
@@ -222,14 +244,11 @@ public class CtmSheetSprite extends InterpolatedIcon {
         return (float) offset / total;
     }
 
-    /**
-     * Exposes one unit of the sheet as an icon covering only that unit's content.
-     */
     private class UnitIcon implements IIcon {
 
         private final int unit;
 
-        UnitIcon(int unit) {
+        private UnitIcon(int unit) {
             this.unit = unit;
         }
 

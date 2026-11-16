@@ -19,7 +19,8 @@ import cpw.mods.fml.common.Loader;
 
 public class Textures {
 
-    private static Boolean gregTechLoaded;
+    private static volatile Boolean gregTechLoaded;
+    private static final ThreadLocal<int[]> planningIconIndices = ThreadLocal.withInitial(() -> new int[4]);
 
     public static Map<String, CTMIconManager> ctmIconMap = new ConcurrentHashMap<>();
     public static Map<String, String[]> ctmReplaceMap = new ConcurrentHashMap<>();
@@ -137,7 +138,7 @@ public class Textures {
         if (manager.hasFaceTiles()) {
             int tile = selectFaceTile(blockAccess, (int) x, (int) y, (int) z, iIcon, manager, forgeDirection);
             if (tile < 0) {
-                // This face keeps its original texture.
+
                 return false;
             }
             iconIdx[0] = tile;
@@ -180,7 +181,7 @@ public class Textures {
             return false;
         }
 
-        int[] iconIdx = new int[4];
+        int[] iconIdx = planningIconIndices.get();
         if (manager.detectionDiameter == CTMIconManager.DetectionDiameter.DIAMETER_1) {
             iconIdx[0] = 17;
             iconIdx[1] = 18;
@@ -231,11 +232,6 @@ public class Textures {
         return manager.selectFaceTile(connections, forgeDirection, slotMask);
     }
 
-    /**
-     * Builds four connection-texture quadrant indices for a block face.
-     * Connections 0 through 3 represent the cardinal neighbors and connections 4 through 7 represent diagonals.
-     * The output is ordered top-left, top-right, bottom-left, bottom-right.
-     */
     /**
      * Selects the tile covering one face for a layout driven method.
      * Only the neighbour lookups the layout reads are gathered, so a layout driven by a single axis, or by the block
@@ -459,7 +455,7 @@ public class Textures {
         if (isGregTechLoaded()) {
             try {
                 return GTNHIntegrationHelper.getIcon(blockAccess, x, y, z, direction);
-            } catch (Throwable t) {
+            } catch (RuntimeException | LinkageError t) {
                 return null;
             }
         }
@@ -476,7 +472,7 @@ public class Textures {
         boolean loaded;
         try {
             loaded = Loader.isModLoaded("gregtech");
-        } catch (Throwable t) {
+        } catch (RuntimeException | LinkageError t) {
             return false;
         }
 

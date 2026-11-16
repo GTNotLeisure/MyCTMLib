@@ -13,9 +13,9 @@ import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 @Mod(
-    modid = MyCTMLib.MODID,
-    version = "v1.2.5_28x",
-    name = "MyCTMLib",
+    modid = Tags.MODID,
+    version = Tags.VERSION,
+    name = Tags.MODNAME,
     dependencies = "required-after:gtnhlib;",
     guiFactory = "com.github.wohaopa.MyCTMLib.client.config.MyCTMLibGuiFactory",
     acceptedMinecraftVersions = "[1.7.10]")
@@ -28,7 +28,7 @@ public class MyCTMLib {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) throws ConfigException {
         ModConfig.registerConfig();
-        // Register the metadata serializer only on the client.
+
         if (FMLCommonHandler.instance()
             .getSide()
             .isClient()) {

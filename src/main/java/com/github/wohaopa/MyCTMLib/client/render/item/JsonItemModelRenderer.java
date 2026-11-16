@@ -76,15 +76,14 @@ public class JsonItemModelRenderer {
             transform.run();
             if (tints == null) {
                 prepareTintColors(stack, model.tintIndices());
-            } else {
-                tintColors = tints.clone();
             }
+            int[] colors = tints == null ? tintColors : tints;
             tessellator.startDrawingQuads();
 
             ModelQuadView[] quads = model.quads();
             float[] shades = model.shades();
             for (int index = 0; index < quads.length; index++) {
-                renderQuad(tessellator, quads[index], shades[index]);
+                renderQuad(tessellator, quads[index], shades[index], colors);
             }
 
             tessellator.draw();
@@ -95,27 +94,27 @@ public class JsonItemModelRenderer {
     }
 
     private void prepareTintColors(ItemStack stack, int[] tintIndices) {
+        int passes = stack.getItem()
+            .getRenderPasses(stack.getItemDamage());
         int required = 0;
         for (int tintIndex : tintIndices) {
-            required = Math.max(required, tintIndex + 1);
+            if (tintIndex >= 0 && tintIndex < passes) required = Math.max(required, tintIndex + 1);
         }
         if (tintColors.length != required) {
             tintColors = new int[required];
         }
         Arrays.fill(tintColors, UNTINTED);
-        int passes = stack.getItem()
-            .getRenderPasses(stack.getItemDamage());
         for (int tintIndex : tintIndices) {
-            if (tintIndex < passes) {
+            if (tintIndex >= 0 && tintIndex < passes) {
                 tintColors[tintIndex] = stack.getItem()
                     .getColorFromItemStack(stack, tintIndex);
             }
         }
     }
 
-    private void renderQuad(Tessellator tessellator, ModelQuadView quad, float shade) {
+    private void renderQuad(Tessellator tessellator, ModelQuadView quad, float shade, int[] colors) {
         int tintIndex = quad.getColorIndex();
-        int color = tintIndex >= 0 && tintIndex < tintColors.length ? tintColors[tintIndex] : UNTINTED;
+        int color = tintIndex >= 0 && tintIndex < colors.length ? colors[tintIndex] : UNTINTED;
         tessellator.setColorOpaque_F(
             ((color >> 16) & 255) / 255.0F * shade,
             ((color >> 8) & 255) / 255.0F * shade,

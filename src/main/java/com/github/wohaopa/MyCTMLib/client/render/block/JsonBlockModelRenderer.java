@@ -11,7 +11,6 @@ import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.Geometry;
 import com.gtnewhorizon.gtnhlib.client.renderer.TessellatorManager;
 import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.ModelQuadView;
 
-/** Emits cached geometry into the current chunk batch without changing OpenGL state. */
 public class JsonBlockModelRenderer {
 
     private final int[] brightness = new int[7];

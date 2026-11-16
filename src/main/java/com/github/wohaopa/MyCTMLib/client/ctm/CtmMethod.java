@@ -1,11 +1,5 @@
 package com.github.wohaopa.MyCTMLib.client.ctm;
 
-/**
- * Layout of the sheet that holds every connection state.
- * <p>
- * Cells are always addressed top to bottom, left to right. Every method except the compact layout picks a single tile
- * for the whole face, which is why those methods render through the same single quad path vanilla uses.
- */
 public enum CtmMethod {
 
     COMPACT(2, 2, true),
@@ -32,7 +26,7 @@ public enum CtmMethod {
     private final int rows;
     private final boolean implemented;
 
-    CtmMethod(int columns, int rows, boolean implemented) {
+    private CtmMethod(int columns, int rows, boolean implemented) {
         this.columns = columns;
         this.rows = rows;
         this.implemented = implemented;

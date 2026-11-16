@@ -13,6 +13,9 @@ public enum Mixins implements IMixins {
             "AccessorSimpleResource",
             "MixinItemRenderer",
             "MixinRenderBlocks",
+            "MixinRenderBlocksComparator",
+            "MixinRenderBlocksRepeater",
+            "MixinRenderBlocksTorch",
             "MixinTextureMap",
             "MixinSimpleReloadableResourceManager")
         .setPhase(Phase.EARLY)),
@@ -65,7 +68,7 @@ public enum Mixins implements IMixins {
 
     private final MixinBuilder builder;
 
-    Mixins(MixinBuilder builder) {
+    private Mixins(MixinBuilder builder) {
         this.builder = builder;
     }
 

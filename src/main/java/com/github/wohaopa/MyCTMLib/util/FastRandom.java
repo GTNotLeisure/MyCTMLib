@@ -1,9 +1,5 @@
 package com.github.wohaopa.MyCTMLib.util;
 
-/**
- * High-performance position-based random number generator.
- * Uses a pure hash function optimized for texture selection.
- */
 public class FastRandom {
 
     /**

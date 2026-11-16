@@ -3,9 +3,6 @@ package com.github.wohaopa.MyCTMLib.client.ctm;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraftforge.common.util.ForgeDirection;
 
-/**
- * Scopes depth ordering to an explicit sequence of texture layers on one block face.
- */
 public class LayeredFaceRender implements AutoCloseable {
 
     private static final ThreadLocal<LayeredFaceRender> scopes = ThreadLocal

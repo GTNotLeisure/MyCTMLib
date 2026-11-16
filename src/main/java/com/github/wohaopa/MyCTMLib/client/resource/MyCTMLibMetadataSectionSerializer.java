@@ -21,7 +21,6 @@ public class MyCTMLibMetadataSectionSerializer implements IMetadataSectionSerial
         throws JsonParseException {
         JsonObject json = jsonElement.getAsJsonObject();
 
-        // Return the complete myctmlib JSON object.
         return new MyCTMLibMetadataSection(json);
     }
 

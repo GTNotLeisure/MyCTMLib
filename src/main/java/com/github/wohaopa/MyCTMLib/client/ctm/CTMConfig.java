@@ -8,12 +8,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-/**
- * Parses CTM metadata configuration.
- */
 public class CTMConfig {
 
-    // Parsed configuration values.
     public final String connectionTexture;
     public final String altTexture;
     public final List<String> randomTextures;
@@ -38,20 +34,22 @@ public class CTMConfig {
         this.height = parseRawIntField(ctmObj, "height", 0);
     }
 
-    // Reads a whole number field, falling back when it is absent or not a number.
     private int parseRawIntField(JsonObject ctmObj, String fieldName, int fallback) {
-        JsonPrimitive primitive = ctmObj.getAsJsonPrimitive(fieldName);
-        if (primitive == null) {
-            return fallback;
-        }
+        return parseInt(ctmObj.get(fieldName), fallback);
+    }
+
+    private int parseInt(JsonElement element, int fallback) {
+        if (element == null || !element.isJsonPrimitive()) return fallback;
+        JsonPrimitive primitive = element.getAsJsonPrimitive();
+        if (!primitive.isNumber() && !primitive.isString()) return fallback;
         try {
-            return primitive.getAsInt();
-        } catch (NumberFormatException e) {
+            return primitive.getAsBigDecimal()
+                .intValueExact();
+        } catch (NumberFormatException | ArithmeticException e) {
             return fallback;
         }
     }
 
-    // Reads a whole number array, returning an empty array when it is absent or not an array.
     private int[] parseRawIntArray(JsonObject ctmObj, String fieldName) {
         if (!ctmObj.has(fieldName)) {
             return new int[0];
@@ -65,40 +63,24 @@ public class CTMConfig {
         JsonArray array = element.getAsJsonArray();
         int[] result = new int[array.size()];
         for (int i = 0; i < result.length; i++) {
-            try {
-                result[i] = array.get(i)
-                    .getAsInt();
-            } catch (NumberFormatException e) {
-                result[i] = 1;
-            }
+            result[i] = parseInt(array.get(i), 1);
         }
         return result;
     }
 
-    // Reads a field whose value is not a texture name, so it is kept verbatim.
     private String parseRawStringField(JsonObject ctmObj, String fieldName) {
-        JsonPrimitive primitive = ctmObj.getAsJsonPrimitive(fieldName);
-        if (primitive == null) {
+        JsonElement element = ctmObj.get(fieldName);
+        if (element == null || !element.isJsonPrimitive()
+            || !element.getAsJsonPrimitive()
+                .isString())
             return null;
-        }
-        String value = primitive.getAsString();
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        return value;
+        String value = element.getAsString();
+        return value.isEmpty() ? null : value;
     }
 
-    // Configuration parsing helpers.
     private String parseStringField(JsonObject ctmObj, String fieldName) {
-        JsonPrimitive primitive = ctmObj.getAsJsonPrimitive(fieldName);
-        if (primitive == null) {
-            return null;
-        }
-        String value = primitive.getAsString();
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        return processTextureName(value);
+        String value = parseRawStringField(ctmObj, fieldName);
+        return value == null ? null : processTextureName(value);
     }
 
     private List<String> parseStringArray(JsonObject ctmObj, String fieldName) {
@@ -112,10 +94,13 @@ public class CTMConfig {
         }
 
         JsonArray array = element.getAsJsonArray();
-        List<String> result = new ArrayList<>();
+        List<String> result = new ArrayList<>(array.size());
 
         for (JsonElement el : array) {
+            if (!el.isJsonPrimitive() || !el.getAsJsonPrimitive()
+                .isString()) continue;
             String originalValue = el.getAsString();
+            if (originalValue.isEmpty()) continue;
             String processedValue = processTextureName(originalValue);
             result.add(processedValue);
         }
@@ -123,12 +108,12 @@ public class CTMConfig {
         return result;
     }
 
-    /**
-     * Normalizes a texture name by removing known prefixes and suffixes.
-     */
     private static String processTextureName(String texture) {
-        return texture.replace("minecraft:", "")
-            .replace("textures/blocks/", "")
-            .replace(".png", "");
+        if (texture.startsWith("minecraft:")) texture = texture.substring("minecraft:".length());
+        int pathStart = texture.indexOf(':') + 1;
+        if (texture.startsWith("textures/blocks/", pathStart)) {
+            texture = texture.substring(0, pathStart) + texture.substring(pathStart + "textures/blocks/".length());
+        }
+        return texture.endsWith(".png") ? texture.substring(0, texture.length() - 4) : texture;
     }
 }

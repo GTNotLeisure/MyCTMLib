@@ -25,9 +25,6 @@ import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.properties.ModelQ
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-/**
- * Adapts resolved GTNHLib models to item quads, including vanilla face UV rotation.
- */
 public class JsonItemModel extends JSONModel {
 
     private static final float UV_INSET_PIXELS = 1.0F / 32.0F;
