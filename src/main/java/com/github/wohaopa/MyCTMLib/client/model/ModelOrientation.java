@@ -2,7 +2,6 @@ package com.github.wohaopa.MyCTMLib.client.model;
 
 import net.minecraftforge.common.util.ForgeDirection;
 
-/** A right-handed block orientation with the unrotated front facing north. */
 public record ModelOrientation(ForgeDirection right, ForgeDirection up, ForgeDirection back) {
 
     public static final ModelOrientation[] ORIENTATIONS = createOrientations();

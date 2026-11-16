@@ -8,8 +8,7 @@ import net.minecraft.world.IBlockAccess;
 import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.Geometry;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneComparatorModel;
 
-/** Renders redstone comparators with the JSON models, falling back to the vanilla renderer when unavailable. */
-public final class RedstoneComparatorRenderer {
+public class RedstoneComparatorRenderer {
 
     private static final int[] NO_TINTS = new int[0];
     private static final ThreadLocal<JsonBlockModelRenderer> RENDERERS = ThreadLocal

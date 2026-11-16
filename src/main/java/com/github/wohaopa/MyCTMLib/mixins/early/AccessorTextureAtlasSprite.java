@@ -11,4 +11,7 @@ public interface AccessorTextureAtlasSprite {
 
     @Accessor(value = "animationMetadata", remap = true)
     AnimationMetadataSection getAnimationMetadata();
+
+    @Accessor(value = "animationMetadata", remap = true)
+    void setAnimationMetadata(AnimationMetadataSection metadata);
 }

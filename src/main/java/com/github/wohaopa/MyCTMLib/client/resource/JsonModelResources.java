@@ -20,7 +20,6 @@ import com.gtnewhorizon.gtnhlib.client.model.loading.ModelDeserializer;
 import com.gtnewhorizon.gtnhlib.client.model.loading.ResourceLoc.ModelLoc;
 import com.gtnewhorizon.gtnhlib.client.model.unbaked.JSONModel;
 
-/** A reload-scoped, UTF-8 resource reader using GTNHLib's JSON model deserializer. */
 public class JsonModelResources {
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(JSONModel.class, new ModelDeserializer())

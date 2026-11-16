@@ -27,7 +27,6 @@ public class ClientLifecycle {
         ((AccessorMinecraft) minecraft).getMetadataSerializer()
             .registerMetadataSectionType(new MyCTMLibMetadataSectionSerializer(), MyCTMLibMetadataSection.class);
 
-        // Loads the replacement redstone torch, repeater and comparator models during every block-atlas stitch.
         MinecraftForge.EVENT_BUS.register(RedstoneTorchModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneRepeaterModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneComparatorModel.INSTANCE);

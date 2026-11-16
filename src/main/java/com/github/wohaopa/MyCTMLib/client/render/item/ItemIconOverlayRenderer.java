@@ -14,9 +14,6 @@ import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.ModelQuadView;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * Draws an untinted item sprite over a JSON item without changing the model's tint or display pose.
- */
 @SideOnly(Side.CLIENT)
 public class ItemIconOverlayRenderer {
 

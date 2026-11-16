@@ -20,14 +20,10 @@ import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.ModelQuadView;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Loads the JSON model used by the placed redstone torch and prepares one geometry per torch metadata value.
- * The model is baked after the block atlas has been stitched, so it always uses the sprite that was actually uploaded.
- */
-public final class RedstoneTorchModel {
+public class RedstoneTorchModel {
 
     public static final RedstoneTorchModel INSTANCE = new RedstoneTorchModel();
-    public static final String MODEL = "myctmlib:block/mc/redstone_torch_on";
+    public static final String MODEL = "myctmlib:block/minecraft/redstone_torch_on";
     public static final String TEXTURE = "myctmlib:blocks/mc/redstone_torch";
 
     private static final int UNROTATED = ModelOrientation.index(ForgeDirection.NORTH, ForgeDirection.UP);
@@ -63,7 +59,7 @@ public final class RedstoneTorchModel {
             JsonModelResources resources = new JsonModelResources(
                 Minecraft.getMinecraft()
                     .getResourceManager());
-            BakedBlock model = new JsonBlockModel(resources.load(ModelLoc.fromStr(MODEL))).bakeBlock();
+            BakedBlock model = new JsonBlockModel(resources.load(ModelLoc.fromStr(MODEL))).bakeBlock(UNROTATED);
             snapshot = Snapshot.of(model);
             MyCTMLib.LOG.info("Loaded the redstone torch JSON model");
         } catch (RuntimeException exception) {
@@ -96,6 +92,7 @@ public final class RedstoneTorchModel {
         private static Geometry shear(Geometry base, float dx, float dz, float leanX, float leanZ) {
             ModelQuadView[] quads = new ModelQuadView[base.quads().length];
             float[] shades = new float[quads.length];
+            ForgeDirection[] cullFaces = new ForgeDirection[quads.length];
             for (int index = 0; index < quads.length; index++) {
                 ModelQuadView source = base.quads()[index];
                 ModelQuad quad = new ModelQuad(source);
@@ -109,10 +106,12 @@ public final class RedstoneTorchModel {
                     quad.setZ(vertex, source.getZ(vertex) + dz + leanZ * y);
                 }
                 quads[index] = quad;
+                // Wall-mounted torch faces no longer touch the block boundaries used for neighbor culling.
+                cullFaces[index] = ForgeDirection.UNKNOWN;
                 shades[index] = quad.hasDirectionalShading() ? ModelISBRH.diffuseLight(quad.getComputedFaceNormal())
                     : 1.0F;
             }
-            return new Geometry(quads, shades, base.cullFaces());
+            return new Geometry(quads, shades, cullFaces);
         }
     }
 }

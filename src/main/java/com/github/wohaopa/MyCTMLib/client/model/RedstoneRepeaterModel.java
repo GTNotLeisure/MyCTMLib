@@ -17,14 +17,10 @@ import com.gtnewhorizon.gtnhlib.client.model.loading.ResourceLoc.ModelLoc;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Loads all redstone repeater JSON variants after the block atlas stitch and caches one geometry for every
- * metadata/direction, power and lock state combination.
- */
-public final class RedstoneRepeaterModel {
+public class RedstoneRepeaterModel {
 
     public static final RedstoneRepeaterModel INSTANCE = new RedstoneRepeaterModel();
-    public static final String MODEL_ROOT = "myctmlib:block/mc/";
+    public static final String MODEL_ROOT = "myctmlib:block/minecraft/";
     public static final String TEXTURE_ROOT = "myctmlib:blocks/mc/";
 
     private static final String[] TEXTURES = { TEXTURE_ROOT + "smooth_stone", TEXTURE_ROOT + "repeater",
@@ -91,11 +87,12 @@ public final class RedstoneRepeaterModel {
             for (int delay = 0; delay < 4; delay++) {
                 for (int power = 0; power < 2; power++) {
                     for (int lock = 0; lock < 2; lock++) {
-                        String name = "repeater_" + (delay + 1) + "tick"
+                        String name = "repeater_" + (delay + 1)
+                            + "tick"
                             + (power == 1 ? "_on" : "")
                             + (lock == 1 ? "_locked" : "");
                         BakedBlock baked = new JsonBlockModel(resources.load(ModelLoc.fromStr(MODEL_ROOT + name)))
-                            .bakeBlock();
+                            .bakeBlock(orientation(0), orientation(1), orientation(2), orientation(3));
                         Geometry[] target = power == 0 ? (lock == 0 ? unpowered : unpoweredLocked)
                             : (lock == 0 ? powered : poweredLocked);
                         for (int direction = 0; direction < 4; direction++) {
@@ -118,7 +115,8 @@ public final class RedstoneRepeaterModel {
         }
 
         /**
-         * Metadata 0 is the vanilla repeater with its input on the south side; the unrotated model in {@code mc/}
+         * Metadata 0 is the vanilla repeater with its input on the south side; the unrotated model in
+         * {@code minecraft/}
          * uses the same north/south layout, so metadata 0 keeps the identity orientation.
          */
         private static int orientation(int direction) {

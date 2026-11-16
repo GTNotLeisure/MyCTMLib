@@ -31,29 +31,38 @@ public class InterpolatedIcon extends NewTextureAtlasSprite {
     @Override
     public void updateAnimation() {
         super.updateAnimation();
-        try {
-            updateAnimationInterpolated();
-        } catch (Exception ignored) {}
+        updateAnimationInterpolated();
     }
 
     private void updateAnimationInterpolated() throws IllegalArgumentException {
         AnimationMetadataSection animationMetadata = ((AccessorTextureAtlasSprite) this).getAnimationMetadata();
+        if (animationMetadata == null) return;
         double d0 = 1.0D - tickCounter / (double) animationMetadata.getFrameTimeSingle(frameCounter);
         int i = animationMetadata.getFrameIndex(frameCounter);
         int j = animationMetadata.getFrameCount() == 0 ? framesTextureData.size() : animationMetadata.getFrameCount();
         int k = animationMetadata.getFrameIndex((frameCounter + 1) % j);
 
-        if (i != k && k >= 0 && k < framesTextureData.size()) {
+        if (i >= 0 && i < framesTextureData.size() && i != k && k >= 0 && k < framesTextureData.size()) {
             int[][] aint = framesTextureData.get(i);
             int[][] aint1 = framesTextureData.get(k);
+            if (aint == null || aint1 == null) return;
 
             if (interpolatedFrameData == null || interpolatedFrameData.length != aint.length)
                 interpolatedFrameData = new int[aint.length][];
 
             for (int l = 0; l < aint.length; l++) {
-                if (interpolatedFrameData[l] == null) interpolatedFrameData[l] = new int[aint[l].length];
+                if (aint[l] == null) {
+                    interpolatedFrameData[l] = null;
+                    continue;
+                }
+                if (interpolatedFrameData[l] == null || interpolatedFrameData[l].length != aint[l].length)
+                    interpolatedFrameData[l] = new int[aint[l].length];
 
-                if (l < aint1.length && aint1[l].length == aint[l].length) for (int i1 = 0; i1 < aint[l].length; ++i1) {
+                if (l >= aint1.length || aint1[l] == null || aint1[l].length != aint[l].length) {
+                    System.arraycopy(aint[l], 0, interpolatedFrameData[l], 0, aint[l].length);
+                    continue;
+                }
+                for (int i1 = 0; i1 < aint[l].length; ++i1) {
                     int j1 = aint[l][i1];
                     int k1 = aint1[l][i1];
                     int l1 = (int) (((j1 & 16711680) >> 16) * d0 + ((k1 & 16711680) >> 16) * (1.0D - d0));

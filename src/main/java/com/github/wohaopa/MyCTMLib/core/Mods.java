@@ -26,11 +26,11 @@ public enum Mods implements IMod, ITargetMod {
     private final TargetModBuilder targetModBuilder;
     private Boolean loaded;
 
-    Mods(String id) {
+    private Mods(String id) {
         this(id, null);
     }
 
-    Mods(String id, String coreModClass) {
+    private Mods(String id, String coreModClass) {
         this.id = id;
         this.resourceDomain = id.toLowerCase(Locale.ROOT);
         this.targetModBuilder = new TargetModBuilder().setModId(id)

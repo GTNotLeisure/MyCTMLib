@@ -1,10 +1,11 @@
 package com.github.wohaopa.MyCTMLib.compat.ic2;
 
-import static com.github.wohaopa.MyCTMLib.client.ctm.Textures.*;
+import static com.github.wohaopa.MyCTMLib.client.ctm.Textures.ctmAltMap;
+import static com.github.wohaopa.MyCTMLib.client.ctm.Textures.ctmIconMap;
+import static com.github.wohaopa.MyCTMLib.client.ctm.Textures.ctmReplaceMap;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStream;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -14,162 +15,91 @@ import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.SimpleResource;
 import net.minecraft.util.ResourceLocation;
 
+import com.github.wohaopa.MyCTMLib.MyCTMLib;
+import com.github.wohaopa.MyCTMLib.client.ctm.CTMConfig;
 import com.github.wohaopa.MyCTMLib.client.ctm.CTMIconManager;
 import com.github.wohaopa.MyCTMLib.client.texture.InterpolatedIcon;
 import com.github.wohaopa.MyCTMLib.client.texture.NewTextureAtlasSprite;
+import com.github.wohaopa.MyCTMLib.config.ModConfig;
 import com.github.wohaopa.MyCTMLib.mixins.early.AccessorSimpleResource;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 public class IC2TextureLoader {
 
     public static void handleTexture(IIconRegister iconRegister, String originName) {
-        for (int side = 0; side < 6; ++side) {
+        if (!(iconRegister instanceof TextureMap atlas)) return;
+        for (int side = 0; side < 6; side++) {
+            String textureName = originName + "&" + side + ".png";
             try {
-                String textureName = originName + "&" + side + ".png";
-
-                TextureAtlasSprite currentCTM = null;
-                TextureAtlasSprite currentAlt = null;
-                ResourceLocation res = new ResourceLocation(textureName);
                 IResource resource = Minecraft.getMinecraft()
                     .getResourceManager()
-                    .getResource(res);
+                    .getResource(new ResourceLocation(textureName));
+                try (InputStream stream = resource.getInputStream()) {
+                    if (!(resource instanceof SimpleResource simple) || simple.getMetadata("myctmlib") == null)
+                        continue;
+                    JsonObject json = ((AccessorSimpleResource) simple).getMcMetaJson()
+                        .getAsJsonObject("myctmlib");
+                    CTMConfig config = new CTMConfig(json);
+                    TextureAtlasSprite base = registerSprite(atlas, textureName, 2, useInterpolation(simple));
+                    TextureAtlasSprite connection = loadSprite(atlas, config.connectionTexture, json, "connection", 4);
+                    TextureAtlasSprite alternate = loadSprite(atlas, config.altTexture, json, "alt", 2);
+                    if (connection == null && alternate == null) continue;
 
-                if (resource instanceof SimpleResource simple) {
-
-                    if (simple.getMetadata("myctmlib") != null) {
-                        TextureAtlasSprite currentBase = new NewTextureAtlasSprite(textureName, 2, 2);
-                        ((TextureMap) iconRegister).setTextureEntry(textureName, currentBase);
-
-                        if (simple.getMetadata("animation") != null) {
-                            JsonObject animationObj = ((AccessorSimpleResource) simple).getMcMetaJson()
-                                .getAsJsonObject("animation");
-                            if (animationObj.has("interpolate") && animationObj.getAsJsonPrimitive("interpolate")
-                                .getAsBoolean()) {
-                                InterpolatedIcon interpolatedIcon = new InterpolatedIcon(textureName, 2, 2);
-                                ((TextureMap) iconRegister).setTextureEntry(textureName, interpolatedIcon);
-                                currentBase = interpolatedIcon;
-                            }
-                        }
-
-                        JsonObject ctmObj = ((AccessorSimpleResource) simple).getMcMetaJson()
-                            .getAsJsonObject("myctmlib");
-
-                        JsonPrimitive connectionPrimitive = ctmObj.getAsJsonPrimitive("connection");
-                        String connectTexture = null;
-                        if (connectionPrimitive != null) {
-                            connectTexture = connectionPrimitive.getAsString();
-                        }
-
-                        if (connectTexture != null && !connectTexture.isEmpty()) {
-                            String connectTextureName = connectTexture.replace("minecraft:", "")
-                                .replace("textures/blocks/", "")
-                                .replace(".png", "");
-
-                            currentCTM = new NewTextureAtlasSprite(connectTextureName, 4, 4);
-                            ((TextureMap) iconRegister).setTextureEntry(connectTextureName, currentCTM);
-                            try {
-                                ResourceLocation resCTM = new ResourceLocation(connectTexture);
-                                IResource resourceCTM = Minecraft.getMinecraft()
-                                    .getResourceManager()
-                                    .getResource(resCTM);
-
-                                if (resourceCTM instanceof SimpleResource simpleCTM) {
-                                    if (simpleCTM.getMetadata("animation") != null) {
-                                        JsonObject animationObjCTM = ((AccessorSimpleResource) simpleCTM)
-                                            .getMcMetaJson()
-                                            .getAsJsonObject("animation");
-                                        if (animationObjCTM.has("interpolate")
-                                            && animationObjCTM.getAsJsonPrimitive("interpolate")
-                                                .getAsBoolean()) {
-                                            InterpolatedIcon interpolatedIconCTM = new InterpolatedIcon(
-                                                connectTextureName,
-                                                4,
-                                                4);
-                                            ((TextureMap) iconRegister)
-                                                .setTextureEntry(connectTextureName, interpolatedIconCTM);
-
-                                            currentCTM = interpolatedIconCTM;
-                                        }
-                                    }
-                                }
-                            } catch (IOException ignored) {}
-                        }
-
-                        JsonPrimitive altPrimitive = ctmObj.getAsJsonPrimitive("alt");
-                        String altTexture = null;
-                        if (altPrimitive != null) {
-                            altTexture = altPrimitive.getAsString();
-                        }
-
-                        if (altTexture != null && !altTexture.isEmpty()) {
-                            String altTextureName = altTexture.replace("minecraft:", "")
-                                .replace("textures/blocks/", "")
-                                .replace(".png", "");
-                            currentAlt = new NewTextureAtlasSprite(altTextureName, 2, 2);
-                            ((TextureMap) iconRegister).setTextureEntry(altTextureName, currentAlt);
-                            try {
-                                ResourceLocation resAlt = new ResourceLocation(altTexture);
-                                IResource resourceAlt = Minecraft.getMinecraft()
-                                    .getResourceManager()
-                                    .getResource(resAlt);
-
-                                if (resourceAlt instanceof SimpleResource simpleAlt) {
-                                    if (simpleAlt.getMetadata("animation") != null) {
-                                        JsonObject animationObjAlt = ((AccessorSimpleResource) simpleAlt)
-                                            .getMcMetaJson()
-                                            .getAsJsonObject("animation");
-                                        if (animationObjAlt.has("interpolate")
-                                            && animationObjAlt.getAsJsonPrimitive("interpolate")
-                                                .getAsBoolean()) {
-                                            InterpolatedIcon interpolatedIconAlt = new InterpolatedIcon(
-                                                altTextureName,
-                                                2,
-                                                2);
-                                            ((TextureMap) iconRegister)
-                                                .setTextureEntry(altTextureName, interpolatedIconAlt);
-
-                                            currentAlt = interpolatedIconAlt;
-                                        }
-                                    }
-                                }
-                            } catch (IOException ignored) {}
-                        }
-
-                        List<String> equivalents = new ArrayList<>();
-                        if (ctmObj.has("equivalents")) {
-                            JsonArray arr = ctmObj.getAsJsonArray("equivalents");
-                            for (JsonElement el : arr) {
-                                String eq = el.getAsString()
-                                    .replace("minecraft:", "")
-                                    .replace("textures/blocks/", "")
-                                    .replace(".png", "");
-                                equivalents.add(eq);
-                            }
-                        }
-                        if (!equivalents.isEmpty()) {
-                            ctmReplaceMap.put(textureName, equivalents.toArray(new String[0]));
-                        }
-                        if (currentAlt != null) {
-                            CTMIconManager manager = CTMIconManager.builder()
-                                .setIconSmall(currentBase)
-                                .setIconCTM(currentCTM)
-                                .setIconAlt(currentAlt)
-                                .buildAndInit();
-                            ctmIconMap.put(textureName, manager);
-                            ctmAltMap.put(textureName, currentAlt.getIconName());
-                        } else if (currentCTM != null) {
-                            CTMIconManager manager = CTMIconManager.builder()
-                                .setIconSmall(currentBase)
-                                .setIconCTM(currentCTM)
-                                .buildAndInit();
-                            ctmIconMap.put(textureName, manager);
-                        }
+                    CTMIconManager manager = CTMIconManager.builder()
+                        .setIconSmall(base)
+                        .setIconCTM(connection)
+                        .setIconAlt(alternate)
+                        .buildAndInit();
+                    ctmIconMap.put(textureName, manager);
+                    if (alternate != null) ctmAltMap.put(textureName, alternate.getIconName());
+                    if (!config.equivalents.isEmpty()) {
+                        ctmReplaceMap.put(textureName, config.equivalents.toArray(new String[0]));
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (IOException | RuntimeException exception) {
+                if (ModConfig.debug)
+                    MyCTMLib.LOG.warn("Cannot load IC2 texture metadata for {}", textureName, exception);
+            }
         }
+    }
+
+    private static TextureAtlasSprite loadSprite(TextureMap atlas, String name, JsonObject json, String field,
+        int grid) {
+        if (name == null) return null;
+        boolean interpolate = false;
+        try {
+            // IC2 metadata names resource files directly rather than using block-atlas paths.
+            IResource resource = Minecraft.getMinecraft()
+                .getResourceManager()
+                .getResource(
+                    new ResourceLocation(
+                        json.get(field)
+                            .getAsString()));
+            try (InputStream stream = resource.getInputStream()) {
+                if (resource instanceof SimpleResource simple) interpolate = useInterpolation(simple);
+            }
+        } catch (IOException ignored) {}
+        return registerSprite(atlas, name, grid, interpolate);
+    }
+
+    private static TextureAtlasSprite registerSprite(TextureMap atlas, String name, int grid, boolean interpolate) {
+        TextureAtlasSprite registered = atlas.getTextureExtry(name);
+        if (registered != null) return registered;
+        TextureAtlasSprite sprite = interpolate ? new InterpolatedIcon(name, grid, grid)
+            : new NewTextureAtlasSprite(name, grid, grid);
+        atlas.setTextureEntry(name, sprite);
+        return sprite;
+    }
+
+    private static boolean useInterpolation(SimpleResource resource) {
+        if (resource.getMetadata("animation") == null) return false;
+        JsonObject animation = ((AccessorSimpleResource) resource).getMcMetaJson()
+            .getAsJsonObject("animation");
+        JsonElement value = animation == null ? null : animation.get("interpolate");
+        return value != null && value.isJsonPrimitive()
+            && value.getAsJsonPrimitive()
+                .isBoolean()
+            && value.getAsBoolean();
     }
 }

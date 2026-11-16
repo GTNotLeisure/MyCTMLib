@@ -17,14 +17,10 @@ import com.gtnewhorizon.gtnhlib.client.model.loading.ResourceLoc.ModelLoc;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * Loads the four redstone comparator JSON models (compare/subtract x unpowered/powered) and caches one geometry
- * for each metadata direction.
- */
-public final class RedstoneComparatorModel {
+public class RedstoneComparatorModel {
 
     public static final RedstoneComparatorModel INSTANCE = new RedstoneComparatorModel();
-    public static final String MODEL_ROOT = "myctmlib:block/mc/";
+    public static final String MODEL_ROOT = "myctmlib:block/minecraft/";
     public static final String TEXTURE_ROOT = "myctmlib:blocks/mc/";
 
     private static final String[] TEXTURES = { TEXTURE_ROOT + "smooth_stone", TEXTURE_ROOT + "comparator",
@@ -71,8 +67,7 @@ public final class RedstoneComparatorModel {
         }
     }
 
-    public record Snapshot(Geometry[] offCompare, Geometry[] onCompare, Geometry[] offSubtract,
-        Geometry[] onSubtract) {
+    public record Snapshot(Geometry[] offCompare, Geometry[] onCompare, Geometry[] offSubtract, Geometry[] onSubtract) {
 
         public Snapshot {
             offCompare = offCompare.clone();
@@ -89,10 +84,9 @@ public final class RedstoneComparatorModel {
 
             for (int power = 0; power < 2; power++) {
                 for (int subtract = 0; subtract < 2; subtract++) {
-                    String name = "comparator" + (power == 1 ? "_on" : "")
-                        + (subtract == 1 ? "_subtract" : "");
+                    String name = "comparator" + (power == 1 ? "_on" : "") + (subtract == 1 ? "_subtract" : "");
                     BakedBlock baked = new JsonBlockModel(resources.load(ModelLoc.fromStr(MODEL_ROOT + name)))
-                        .bakeBlock();
+                        .bakeBlock(orientation(0), orientation(1), orientation(2), orientation(3));
                     Geometry[] target = power == 1 ? (subtract == 1 ? onSubtract : onCompare)
                         : (subtract == 1 ? offSubtract : offCompare);
                     for (int direction = 0; direction < 4; direction++) {
@@ -108,23 +102,18 @@ public final class RedstoneComparatorModel {
         }
 
         public Geometry geometry(boolean powered, boolean subtract, int metadata) {
-            Geometry[] set = powered ? (subtract ? onSubtract : onCompare)
-                : (subtract ? offSubtract : offCompare);
+            Geometry[] set = powered ? (subtract ? onSubtract : onCompare) : (subtract ? offSubtract : offCompare);
             return set[metadata & 3];
         }
 
-        /**
-         * The unrotated model has its two front torches on the south side, matching metadata 0. Rotate so the
-         * model's front (+z) follows the metadata output direction.
-         */
         private static int orientation(int direction) {
-            ForgeDirection output = switch (direction & 3) {
+            ForgeDirection input = switch (direction & 3) {
                 case 0 -> ForgeDirection.SOUTH;
                 case 1 -> ForgeDirection.WEST;
                 case 2 -> ForgeDirection.NORTH;
                 default -> ForgeDirection.EAST;
             };
-            return ModelOrientation.index(output.getOpposite(), ForgeDirection.UP);
+            return ModelOrientation.index(input.getOpposite(), ForgeDirection.UP);
         }
     }
 }

@@ -8,10 +8,7 @@ import net.minecraft.world.IBlockAccess;
 import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.Geometry;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneTorchModel;
 
-/**
- * Renders the placed redstone torch with the JSON model, falling back to the vanilla renderer when it is unavailable.
- */
-public final class RedstoneTorchRenderer {
+public class RedstoneTorchRenderer {
 
     private static final int[] NO_TINTS = new int[0];
     private static final ThreadLocal<JsonBlockModelRenderer> RENDERERS = ThreadLocal
@@ -25,6 +22,7 @@ public final class RedstoneTorchRenderer {
         if (snapshot == null) return false;
 
         Geometry geometry = snapshot.geometry(world.getBlockMetadata(x, y, z) & 7);
+        if (geometry == null) return false;
         JsonBlockModelRenderer context = RENDERERS.get();
         context.prepare(block, world, x, y, z, renderer);
         context.render(geometry, x, y, z, 0, 0, 0, 0xFFFFFF, NO_TINTS, false, renderer.overrideBlockTexture);

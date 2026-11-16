@@ -7,14 +7,8 @@ import net.minecraftforge.common.util.ForgeDirection;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * Provides CTM sub-icons derived from connection and fallback texture sheets.
- */
 public class CTMIconManager {
 
-    /**
-     * Defines the neighborhood diameter used by a CTM layout.
-     */
     public enum DetectionDiameter {
 
         DIAMETER_1(1),
@@ -25,7 +19,7 @@ public class CTMIconManager {
 
         private final int value;
 
-        DetectionDiameter(int value) {
+        private DetectionDiameter(int value) {
             this.value = value;
         }
 
@@ -39,22 +33,16 @@ public class CTMIconManager {
         }
     }
 
-    // Stores generated sub-icons at their CTM indices.
-    public IIcon[] icons = new CTMIcon[25];
+    public IIcon[] icons = new IIcon[25];
 
-    // Stores the regular 4 by 4 connection texture sheet.
     public IIcon iconCTM;
 
-    // Stores the 2 by 2 fallback texture sheet.
     public IIcon iconSmall;
 
-    // Stores the 2 by 2 alternate fallback texture sheet.
     public IIcon iconAlt;
 
-    // Stores the ring texture sheet.
     public IIcon iconRing;
 
-    // Stores the per-variant sprites of the connection texture.
     private IIcon[] iconVariants;
 
     // Maps every sub-icon index to the variant icon it belongs to, or null when the index is unused.
@@ -63,37 +51,29 @@ public class CTMIconManager {
     // Maps every sub-icon index to its quarter inside that variant, coded as left plus top times two.
     private int[] variantQuarters = new int[25];
 
-    // Stores the single tile covering every face for a per face method, or null for the compact layout.
     private IIcon faceTile;
 
-    // Stores the tiles of a layout driven method in tile order, or null when the method picks no tile per face.
     private IIcon[] tileIcons;
 
-    // Stores the layout driven method that selects one tile per face.
     private CtmMethod faceMethod;
 
-    // Stores the tile weights of the random layout, one value per tile.
     private int[] tileWeights;
 
-    // Stores how many face indices of the random layout share one tile.
     private int faceGrouping = 1;
 
     // Prefix sums of the random layout weights, so picking a tile never has to walk the weights per face.
-    private int[] randomCumulative;
-    private int randomTotalWeight;
+    private long[] randomCumulative;
+    private long randomTotalWeight;
 
     // Quarters of the layout tiles, used where a face is drawn in pieces instead of as one quad.
     private IIcon[] tileQuadrants;
 
-    // Stores the pattern size of the repeat layout.
     private int repeatWidth;
     private int repeatHeight;
 
-    // Stores whether opposite faces of the repeat layout share a pattern position.
     private boolean repeatOpposite;
 
-    // Stores whether the client installs the vanilla bottom face UV fix, or null while it is unknown.
-    private static Boolean bottomFaceUvFixed;
+    private static volatile Boolean bottomFaceUvFixed;
 
     // World direction of the face-local right and down axes, indexed by the face direction ordinal.
     private static final ForgeDirection[] FACE_RIGHT = { ForgeDirection.WEST, ForgeDirection.EAST, ForgeDirection.WEST,
@@ -163,7 +143,6 @@ public class CTMIconManager {
         3, 6, 3, 3, 3, 6, 3, 3, 3, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
         3, 3, 3, 3, 3, 3, 3 };
 
-    // Stores the active CTM neighborhood diameter.
     public DetectionDiameter detectionDiameter = DetectionDiameter.DIAMETER_1;
 
     /**
@@ -180,7 +159,6 @@ public class CTMIconManager {
         this.iconSmall = iconSmall;
     }
 
-    // Tracks whether sub-icons have been generated.
     private boolean inited = false;
 
     /**
@@ -189,7 +167,7 @@ public class CTMIconManager {
     public void init() {
 
         if (iconVariants != null && iconVariants.length == 4) {
-            // Build the connection sub-icons from the per-variant sprites of the sheet.
+
             for (int i = 1; i <= 4; i++) {
                 for (int j = 0; j < 4; j++) {
                     int column = i - 1;
@@ -202,17 +180,21 @@ public class CTMIconManager {
                 }
             }
         } else if (iconCTM != null) {
-            // Build the regular 4 by 4 connection sub-icons, one variant per two by two block of cells.
+            IIcon[] variants = new IIcon[4];
+            for (int variant = 0; variant < variants.length; variant++) {
+                variants[variant] = new CTMIcon(iconCTM, 2, 2, variant % 2, variant / 2);
+            }
+
             for (int i = 1; i <= 4; i++) {
                 for (int j = 0; j < 4; j++) {
                     setIcon(i + j * 4, new CTMIcon(iconCTM, 4, 4, i - 1, j));
-                    setVariant(i + j * 4, new CTMIcon(iconCTM, 2, 2, (i - 1) / 2, j / 2), (i - 1) % 2 + j % 2 * 2);
+                    setVariant(i + j * 4, variants[j / 2 * 2 + (i - 1) / 2], (i - 1) % 2 + j % 2 * 2);
                 }
             }
         }
 
         if (iconSmall != null) {
-            // Build the regular 2 by 2 fallback sub-icons, whose variant is the whole base texture.
+
             for (int i = 1; i <= 2; i++) {
                 for (int j = 0; j < 2; j++) {
                     setIcon(i + j * 2 + 16, new CTMIcon(iconSmall, 2, 2, i - 1, j));
@@ -221,7 +203,6 @@ public class CTMIconManager {
             }
         }
 
-        // Build the alternate 2 by 2 fallback sub-icons.
         if (iconAlt != null) {
             for (int i = 1; i <= 2; i++) {
                 for (int j = 0; j < 2; j++) {
@@ -324,7 +305,7 @@ public class CTMIconManager {
      * @return the quarter icon, or null when it is unavailable
      */
     public IIcon getTileQuadrantIcon(int tile, int quadrant) {
-        if (tileQuadrants == null || tile < 0 || quadrant < 0) {
+        if (tileQuadrants == null || tile < 0 || tile >= tileQuadrants.length / 4 || quadrant < 0 || quadrant >= 4) {
             return null;
         }
         int index = tile * 4 + quadrant;
@@ -335,38 +316,18 @@ public class CTMIconManager {
         icons[index] = icon;
     }
 
-    /**
-     * Returns whether sub-icons have been generated.
-     *
-     * @return whether this manager is initialized
-     */
     public boolean hasInited() {
         return inited;
     }
 
-    /**
-     * Returns whether this manager owns a connection texture.
-     *
-     * @return whether a regular connection texture is available
-     */
     public boolean hasConnectionTexture() {
         return iconCTM != null || iconVariants != null || faceTile != null || tileIcons != null;
     }
 
-    /**
-     * Returns whether every face is drawn by selecting one tile from a layout.
-     *
-     * @return whether the method selects a tile per face
-     */
     public boolean hasFaceTiles() {
         return tileIcons != null && faceMethod != null;
     }
 
-    /**
-     * Returns whether the repeat layout picks tiles from block coordinates.
-     *
-     * @return whether the method is the repeat layout
-     */
     public boolean usesRepeatTiles() {
         return faceMethod == CtmMethod.REPEAT;
     }
@@ -440,7 +401,7 @@ public class CTMIconManager {
         try {
             Object flag = Launch.blackboard.get("hodgepodge.FixesConfig.fixBottomFaceUV");
             fixed = flag instanceof Boolean && (Boolean) flag;
-        } catch (Throwable t) {
+        } catch (RuntimeException | LinkageError t) {
             // The launcher is not ready yet, so leave the answer uncached and retry on the next lookup.
             return true;
         }
@@ -449,11 +410,6 @@ public class CTMIconManager {
         return !fixed;
     }
 
-    /**
-     * Returns whether the top layout picks its tile from the block above alone.
-     *
-     * @return whether the method is the top layout
-     */
     public boolean usesTopTiles() {
         return faceMethod == CtmMethod.TOP;
     }
@@ -471,11 +427,6 @@ public class CTMIconManager {
         return connectedAbove ? 0 : -1;
     }
 
-    /**
-     * Returns whether the random layout picks tiles from block coordinates.
-     *
-     * @return whether the method is the random layout
-     */
     public boolean usesRandomTiles() {
         return faceMethod == CtmMethod.RANDOM;
     }
@@ -499,16 +450,22 @@ public class CTMIconManager {
         }
 
         long hash = hash128To64(x, y, z, direction.ordinal() / faceGrouping);
-        int pick = mod(hash, randomTotalWeight);
+        long pick = randomTotalWeight <= Integer.MAX_VALUE ? mod(hash, (int) randomTotalWeight)
+            : (hash & Long.MAX_VALUE) % randomTotalWeight;
 
-        int tile = 0;
-        while (tile < randomCumulative.length - 1 && pick >= randomCumulative[tile]) {
-            tile++;
+        int low = 0;
+        int high = randomCumulative.length - 1;
+        while (low < high) {
+            int middle = (low + high) >>> 1;
+            if (pick < randomCumulative[middle]) {
+                high = middle;
+            } else {
+                low = middle + 1;
+            }
         }
-        return tile;
+        return low;
     }
 
-    // Builds the prefix sums of the random layout weights, called once when the manager is built.
     private void buildRandomWeights() {
         int length = tileIcons == null ? 0 : tileIcons.length;
         if (length == 0) {
@@ -517,8 +474,8 @@ public class CTMIconManager {
             return;
         }
 
-        int[] cumulative = new int[length];
-        int total = 0;
+        long[] cumulative = new long[length];
+        long total = 0;
         for (int tile = 0; tile < length; tile++) {
             total += weightOf(tile);
             cumulative[tile] = total;
@@ -669,18 +626,10 @@ public class CTMIconManager {
         return tile >= 0 && tile < tileIcons.length ? tile : -1;
     }
 
-    /**
-     * Returns whether every face is drawn from one tile.
-     *
-     * @return whether a single tile covers the whole face
-     */
     public boolean hasFaceTile() {
         return faceTile != null;
     }
 
-    /**
-     * Builds CTM icon managers.
-     */
     public static class Builder {
 
         private final CTMIconManager manager;
@@ -689,17 +638,11 @@ public class CTMIconManager {
             this.manager = new CTMIconManager();
         }
 
-        /**
-         * Sets the regular connection texture sheet.
-         */
         public Builder setIconCTM(IIcon iconCTM) {
             manager.iconCTM = iconCTM;
             return this;
         }
 
-        /**
-         * Sets the repeat layout options.
-         */
         public Builder setRepeatOptions(int width, int height, String symmetry) {
             manager.repeatWidth = width;
             manager.repeatHeight = height;
@@ -707,79 +650,48 @@ public class CTMIconManager {
             return this;
         }
 
-        /**
-         * Sets the random layout options.
-         */
         public Builder setRandomOptions(String symmetry, int[] weights) {
-            manager.faceGrouping = switch (symmetry == null ? "none" : symmetry.toLowerCase()) {
-                case "all" -> 6;
-                case "opposite" -> 2;
-                default -> 1;
-            };
+            manager.faceGrouping = "all".equalsIgnoreCase(symmetry) ? 6 : "opposite".equalsIgnoreCase(symmetry) ? 2 : 1;
             manager.tileWeights = weights;
             return this;
         }
 
-        /**
-         * Sets the tiles of a layout driven method, in tile order.
-         */
         public Builder setFaceTiles(CtmMethod method, IIcon[] tiles) {
             manager.faceMethod = method;
             manager.tileIcons = tiles;
             return this;
         }
 
-        /**
-         * Sets the single tile that covers every face.
-         */
         public Builder setFaceTile(IIcon faceTile) {
             manager.faceTile = faceTile;
             return this;
         }
 
-        /**
-         * Sets the per-variant sprites of the connection texture.
-         */
         public Builder setIconVariants(IIcon[] iconVariants) {
             manager.iconVariants = iconVariants;
             return this;
         }
 
-        /**
-         * Sets the fallback texture sheet.
-         */
         public Builder setIconSmall(IIcon iconSmall) {
             manager.iconSmall = iconSmall;
             return this;
         }
 
-        /**
-         * Sets the alternate fallback texture sheet.
-         */
         public Builder setIconAlt(IIcon iconAlt) {
             manager.iconAlt = iconAlt;
             return this;
         }
 
-        /**
-         * Sets the ring texture sheet.
-         */
         public Builder setIconRing(IIcon iconRing) {
             manager.iconRing = iconRing;
             return this;
         }
 
-        /**
-         * Sets the requested neighborhood diameter.
-         */
         public Builder setDetectionDiameter(DetectionDiameter diameter) {
             manager.detectionDiameter = diameter;
             return this;
         }
 
-        /**
-         * Builds a manager.
-         */
         public CTMIconManager build() {
             if (manager.iconSmall == null) {
                 throw new IllegalStateException("iconSmall is required");
@@ -800,9 +712,6 @@ public class CTMIconManager {
             return manager;
         }
 
-        /**
-         * Builds and initializes a manager.
-         */
         public CTMIconManager buildAndInit() {
             CTMIconManager result = build();
             result.init();
@@ -810,27 +719,18 @@ public class CTMIconManager {
         }
     }
 
-    /**
-     * Creates a manager builder.
-     */
     public static Builder builder() {
         return new Builder();
     }
 
-    /**
-     * Derives UV coordinates dynamically from a parent icon.
-     */
     private static class CTMIcon implements IIcon {
 
-        // Stores this sub-icon position in the source grid.
         private final int subTextureX;
         private final int subTextureY;
 
-        // Stores the source grid dimensions.
         private final int gridWidth;
         private final int gridHeight;
 
-        // Stores the parent icon.
         private final IIcon parentIcon;
 
         // Caches the resolved bounds once the parent icon has been stitched into the atlas. The flag is volatile

@@ -15,7 +15,6 @@ import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.ModelQuad;
 import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.ModelQuadView;
 import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.properties.ModelQuadFacing;
 
-/** Reuses the item baker's geometry and UV handling while retaining block culling and orientations. */
 public class JsonBlockModel extends JsonItemModel {
 
     public JsonBlockModel(JSONModel model) {
@@ -41,15 +40,29 @@ public class JsonBlockModel extends JsonItemModel {
     }
 
     public BakedBlock bakeBlock() {
+        return bakeBlock(null);
+    }
+
+    public BakedBlock bakeBlock(int... requestedOrientations) {
         BakedItem item = bakeItem();
         ArrayList<ForgeDirection> cullFaces = new ArrayList<>();
         for (ModelElement element : elements) {
             for (Face face : element.faces()) cullFaces.add(face.cullFace());
         }
         Geometry[] orientations = new Geometry[36];
-        for (int index = 0; index < orientations.length; index++) {
+        int count = requestedOrientations == null ? orientations.length : requestedOrientations.length;
+        for (int position = 0; position < count; position++) {
+            int index = requestedOrientations == null ? position : requestedOrientations[position];
+            if (index < 0 || index >= orientations.length) {
+                throw new IllegalArgumentException("Invalid model orientation: " + index);
+            }
+            if (orientations[index] != null) continue;
             ModelOrientation orientation = ModelOrientation.ORIENTATIONS[index];
-            if (orientation == null) continue;
+            if (orientation == null) {
+                if (requestedOrientations != null)
+                    throw new IllegalArgumentException("Invalid model orientation: " + index);
+                continue;
+            }
             ModelQuadView[] quads = new ModelQuadView[item.quads().length];
             float[] shades = new float[quads.length];
             ForgeDirection[] culls = new ForgeDirection[quads.length];

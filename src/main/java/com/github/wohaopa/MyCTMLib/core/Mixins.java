@@ -68,7 +68,7 @@ public enum Mixins implements IMixins {
 
     private final MixinBuilder builder;
 
-    Mixins(MixinBuilder builder) {
+    private Mixins(MixinBuilder builder) {
         this.builder = builder;
     }
 
