@@ -9,7 +9,7 @@ import com.github.wohaopa.MyCTMLib.MyCTMLib;
 import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.BakedBlock;
 import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.Geometry;
 import com.github.wohaopa.MyCTMLib.client.resource.JsonModelResources;
-import com.github.wohaopa.MyCTMLib.config.ModConfig;
+import com.github.wohaopa.MyCTMLib.client.resource.MinecraftModelPackState;
 import com.github.wohaopa.MyCTMLib.mixins.early.AccessorTextureMap;
 import com.google.gson.JsonParseException;
 import com.gtnewhorizon.gtnhlib.client.model.ModelISBRH;
@@ -44,12 +44,12 @@ public class RedstoneTorchModel {
         if (event.map.getTextureType() != 0) return;
         snapshot = null;
         if (((AccessorTextureMap) event.map).myctmlib$isSkippingFirstLoad()) return;
-        if (ModConfig.redstoneTorchJsonModel) event.map.registerIcon(TEXTURE);
+        if (MinecraftModelPackState.FEATURE.isEnabled("redstone_torch")) event.map.registerIcon(TEXTURE);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void afterStitch(TextureStitchEvent.Post event) {
-        if (event.map.getTextureType() != 0 || !ModConfig.redstoneTorchJsonModel) return;
+        if (event.map.getTextureType() != 0 || !MinecraftModelPackState.FEATURE.isEnabled("redstone_torch")) return;
         if (((AccessorTextureMap) event.map).myctmlib$isSkippingFirstLoad()) return;
         try {
             IIcon sprite = event.map.getAtlasSprite(TEXTURE);

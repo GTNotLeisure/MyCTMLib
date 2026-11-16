@@ -9,7 +9,7 @@ import com.github.wohaopa.MyCTMLib.MyCTMLib;
 import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.BakedBlock;
 import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.Geometry;
 import com.github.wohaopa.MyCTMLib.client.resource.JsonModelResources;
-import com.github.wohaopa.MyCTMLib.config.ModConfig;
+import com.github.wohaopa.MyCTMLib.client.resource.MinecraftModelPackState;
 import com.github.wohaopa.MyCTMLib.mixins.early.AccessorTextureMap;
 import com.google.gson.JsonParseException;
 import com.gtnewhorizon.gtnhlib.client.model.loading.ResourceLoc.ModelLoc;
@@ -39,13 +39,13 @@ public class RedstoneComparatorModel {
         if (event.map.getTextureType() != 0) return;
         snapshot = null;
         if (((AccessorTextureMap) event.map).myctmlib$isSkippingFirstLoad()) return;
-        if (!ModConfig.redstoneComparatorJsonModel) return;
+        if (!MinecraftModelPackState.FEATURE.isEnabled("comparator")) return;
         for (String texture : TEXTURES) event.map.registerIcon(texture);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void afterStitch(TextureStitchEvent.Post event) {
-        if (event.map.getTextureType() != 0 || !ModConfig.redstoneComparatorJsonModel) return;
+        if (event.map.getTextureType() != 0 || !MinecraftModelPackState.FEATURE.isEnabled("comparator")) return;
         if (((AccessorTextureMap) event.map).myctmlib$isSkippingFirstLoad()) return;
         try {
             for (String texture : TEXTURES) {

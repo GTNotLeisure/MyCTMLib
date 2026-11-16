@@ -8,6 +8,7 @@ import com.github.wohaopa.MyCTMLib.client.model.RedstoneComparatorModel;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneRepeaterModel;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneTorchModel;
 import com.github.wohaopa.MyCTMLib.client.resource.BeeJsonModelPackState;
+import com.github.wohaopa.MyCTMLib.client.resource.MinecraftModelPackState;
 import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerializer;
 import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerializer.MyCTMLibMetadataSection;
 import com.github.wohaopa.MyCTMLib.compat.ae2.Ae2Integration;
@@ -27,6 +28,7 @@ public class ClientLifecycle {
         ((AccessorMinecraft) minecraft).getMetadataSerializer()
             .registerMetadataSectionType(new MyCTMLibMetadataSectionSerializer(), MyCTMLibMetadataSection.class);
 
+        MinecraftForge.EVENT_BUS.register(MinecraftModelPackState.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneTorchModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneRepeaterModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneComparatorModel.INSTANCE);
