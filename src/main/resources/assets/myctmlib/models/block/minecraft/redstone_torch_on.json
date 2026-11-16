@@ -3,8 +3,8 @@
   "credit": "Made with Blockbench",
   "ambientocclusion": false,
   "textures": {
-    "particle": "myctmlib:blocks/mc/redstone_torch",
-    "torch": "myctmlib:blocks/mc/redstone_torch"
+    "particle": "myctmlib:blocks/minecraft/redstone_torch",
+    "torch": "myctmlib:blocks/minecraft/redstone_torch"
   },
   "elements": [
     {

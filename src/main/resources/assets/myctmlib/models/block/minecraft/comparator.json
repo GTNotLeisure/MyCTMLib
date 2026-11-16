@@ -1,11 +1,11 @@
 {
   "ambientocclusion": false,
   "textures": {
-    "particle": "myctmlib:blocks/mc/comparator",
-    "slab": "myctmlib:blocks/mc/smooth_stone",
-    "top": "myctmlib:blocks/mc/comparator",
-    "unlit": "myctmlib:blocks/mc/redstone_torch_off",
-    "lit": "myctmlib:blocks/mc/redstone_torch"
+    "particle": "myctmlib:blocks/minecraft/comparator",
+    "slab": "myctmlib:blocks/minecraft/smooth_stone",
+    "top": "myctmlib:blocks/minecraft/comparator",
+    "unlit": "myctmlib:blocks/minecraft/redstone_torch_off",
+    "lit": "myctmlib:blocks/minecraft/redstone_torch"
   },
   "elements": [
     {

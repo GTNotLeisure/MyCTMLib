@@ -21,7 +21,7 @@ public class RedstoneComparatorModel {
 
     public static final RedstoneComparatorModel INSTANCE = new RedstoneComparatorModel();
     public static final String MODEL_ROOT = "myctmlib:block/minecraft/";
-    public static final String TEXTURE_ROOT = "myctmlib:blocks/mc/";
+    public static final String TEXTURE_ROOT = "myctmlib:blocks/minecraft/";
 
     private static final String[] TEXTURES = { TEXTURE_ROOT + "smooth_stone", TEXTURE_ROOT + "comparator",
         TEXTURE_ROOT + "comparator_on", TEXTURE_ROOT + "redstone_torch", TEXTURE_ROOT + "redstone_torch_off" };

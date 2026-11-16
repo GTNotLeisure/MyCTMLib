@@ -1,11 +1,11 @@
 {
   "ambientocclusion": false,
   "textures": {
-    "particle": "myctmlib:blocks/mc/repeater",
-    "slab": "myctmlib:blocks/mc/smooth_stone",
-    "top": "myctmlib:blocks/mc/repeater",
-    "lock": "myctmlib:blocks/mc/bedrock",
-    "unlit": "myctmlib:blocks/mc/redstone_torch_off"
+    "particle": "myctmlib:blocks/minecraft/repeater",
+    "slab": "myctmlib:blocks/minecraft/smooth_stone",
+    "top": "myctmlib:blocks/minecraft/repeater",
+    "lock": "myctmlib:blocks/minecraft/bedrock",
+    "unlit": "myctmlib:blocks/minecraft/redstone_torch_off"
   },
   "elements": [
     {

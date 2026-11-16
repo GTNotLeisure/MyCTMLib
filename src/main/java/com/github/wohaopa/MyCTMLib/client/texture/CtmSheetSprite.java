@@ -139,7 +139,7 @@ public class CtmSheetSprite extends InterpolatedIcon {
                     BufferedImage image = layout(frame * frameHeight);
                     int[][] data = { ((DataBufferInt) image.getRaster()
                         .getDataBuffer()).getData() };
-                    fixTransparentPixels(data);
+                    ((AccessorTextureAtlasSprite) this).myctmlib$fixTransparentPixels(data);
                     frames.add(data);
                 }
 

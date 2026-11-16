@@ -2,10 +2,10 @@
   "credit": "Made with Blockbench",
   "ambientocclusion": false,
   "textures": {
-    "slab": "myctmlib:blocks/mc/smooth_stone",
-    "particle": "myctmlib:blocks/mc/repeater",
-    "top": "myctmlib:blocks/mc/repeater",
-    "unlit": "myctmlib:blocks/mc/redstone_torch_off"
+    "slab": "myctmlib:blocks/minecraft/smooth_stone",
+    "particle": "myctmlib:blocks/minecraft/repeater",
+    "top": "myctmlib:blocks/minecraft/repeater",
+    "unlit": "myctmlib:blocks/minecraft/redstone_torch_off"
   },
   "elements": [
     {
