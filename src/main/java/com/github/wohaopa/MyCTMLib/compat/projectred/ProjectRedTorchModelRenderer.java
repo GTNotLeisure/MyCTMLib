@@ -3,6 +3,8 @@ package com.github.wohaopa.MyCTMLib.compat.projectred;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -131,35 +133,89 @@ public final class ProjectRedTorchModelRenderer {
         throws ReflectiveOperationException {
         ModelQuadView[] quads = geometry.quads();
         if (quads.length == 0) return null;
-        Object model = quadModelMethod.invoke(null, quads.length * 4);
-        Object[] verts = (Object[]) vertsField.get(model);
         double dx = lightX - 0.5D;
         double dz = lightZ - 0.5D;
-        double scaleY = heightPixels / 10.0D;
-        int index = 0;
+        double cutY = Math.max(0, 11 - heightPixels) / 16.0D;
+        double minY = flipped ? cutY : 0.0D;
+        List<Vertex> vertices = new ArrayList<>();
         for (ModelQuadView quad : quads) {
             IIcon sprite = (IIcon) quad.celeritas$getSprite();
             if (sprite == null || sprite.getMaxU() == sprite.getMinU() || sprite.getMaxV() == sprite.getMinV()) {
                 return null;
             }
+            Vertex[] input = new Vertex[4];
             for (int vertex = 0; vertex < 4; vertex++) {
                 double x = quad.getX(vertex) + dx;
-                double y = quad.getY(vertex) * scaleY;
+                double y = quad.getY(vertex);
                 double z = quad.getZ(vertex) + dz;
                 if (flipped) {
                     x = 1.0D - x;
                     y = 1.0D - y - 6.0D / 16.0D;
+                } else {
+                    y -= cutY;
                 }
                 double u = (quad.getTexU(vertex) - sprite.getMinU())
                     / (sprite.getMaxU() - sprite.getMinU());
                 double v = (quad.getTexV(vertex) - sprite.getMinV())
                     / (sprite.getMaxV() - sprite.getMinV());
-                verts[index++] = vertexConstructor.newInstance(x, y, z, u, v);
+                input[vertex] = new Vertex(x, y, z, u, v);
             }
+            appendPolygon(vertices, clip(input, minY));
+        }
+        if (vertices.isEmpty() || vertices.size() % 4 != 0) return null;
+        Object model = quadModelMethod.invoke(null, vertices.size());
+        Object[] verts = (Object[]) vertsField.get(model);
+        for (int index = 0; index < vertices.size(); index++) {
+            Vertex vertex = vertices.get(index);
+            verts[index] = vertexConstructor.newInstance(vertex.x, vertex.y, vertex.z, vertex.u, vertex.v);
         }
         computeNormalsMethod.invoke(model);
         return model;
     }
+
+    private static List<Vertex> clip(Vertex[] input, double minY) {
+        List<Vertex> output = new ArrayList<>(5);
+        for (int index = 0; index < input.length; index++) {
+            Vertex current = input[index];
+            Vertex next = input[(index + 1) % input.length];
+            boolean currentInside = current.y >= minY;
+            boolean nextInside = next.y >= minY;
+            if (currentInside) output.add(current);
+            if (currentInside != nextInside) {
+                double t = (minY - current.y) / (next.y - current.y);
+                output.add(
+                    new Vertex(
+                        current.x + (next.x - current.x) * t,
+                        minY,
+                        current.z + (next.z - current.z) * t,
+                        current.u + (next.u - current.u) * t,
+                        current.v + (next.v - current.v) * t));
+            }
+        }
+        return output;
+    }
+
+    private static void appendPolygon(List<Vertex> output, List<Vertex> polygon) {
+        if (polygon.size() == 3) {
+            output.add(polygon.get(0));
+            output.add(polygon.get(1));
+            output.add(polygon.get(2));
+            output.add(polygon.get(2));
+        } else if (polygon.size() == 4) {
+            output.addAll(polygon);
+        } else if (polygon.size() == 5) {
+            output.add(polygon.get(0));
+            output.add(polygon.get(1));
+            output.add(polygon.get(2));
+            output.add(polygon.get(3));
+            output.add(polygon.get(0));
+            output.add(polygon.get(3));
+            output.add(polygon.get(4));
+            output.add(polygon.get(4));
+        }
+    }
+
+    private record Vertex(double x, double y, double z, double u, double v) {}
 
     private record TorchKey(double x, double z, int heightPixels, boolean flipped) {}
 }
