@@ -14,6 +14,7 @@ import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerial
 import com.github.wohaopa.MyCTMLib.compat.ae2.Ae2Integration;
 import com.github.wohaopa.MyCTMLib.compat.forestry.ForestryIntegration;
 import com.github.wohaopa.MyCTMLib.compat.opencomputers.OpenComputersIntegration;
+import com.github.wohaopa.MyCTMLib.compat.projectred.ProjectRedTorchFeature;
 import com.github.wohaopa.MyCTMLib.core.Mods;
 import com.github.wohaopa.MyCTMLib.mixins.early.AccessorMinecraft;
 
@@ -32,6 +33,7 @@ public class ClientLifecycle {
         MinecraftForge.EVENT_BUS.register(RedstoneTorchModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneRepeaterModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneComparatorModel.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(ProjectRedTorchFeature.INSTANCE);
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             Ae2Integration.registerResources();
         }

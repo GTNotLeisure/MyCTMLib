@@ -62,6 +62,15 @@ public enum Mixins implements IMixins {
         .setPhase(Phase.LATE)
         .addRequiredMod(Mods.Gregtech)),
 
+    PROJECT_RED_INTEGRATION(new MixinBuilder("ProjectRed lit torch JSON model mixin")
+        .addClientMixins("MixinSingleComponentModel")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(Mods.ProjectRedIntegration)),
+
+    PROJECT_RED(new MixinBuilder("ProjectRed torch texture mixin").addClientMixins("MixinRenderFButton")
+        .setPhase(Phase.LATE)
+        .addRequiredMod(Mods.ProjectRedIllumination)),
+
     ANGELICA(new MixinBuilder("Angelica connected texture priority mixin").addClientMixins("MixinCTMUtils")
         .setPhase(Phase.EARLY)
         .addRequiredMod(Mods.Angelica));
