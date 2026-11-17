@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.github.wohaopa.MyCTMLib.client.model.AutomagyTorchModel;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneComparatorModel;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneRepeaterModel;
 import com.github.wohaopa.MyCTMLib.client.model.RedstoneTorchModel;
@@ -30,6 +31,7 @@ public class ClientLifecycle {
             .registerMetadataSectionType(new MyCTMLibMetadataSectionSerializer(), MyCTMLibMetadataSection.class);
 
         MinecraftForge.EVENT_BUS.register(MinecraftModelPackState.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(AutomagyTorchModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneTorchModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneRepeaterModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneComparatorModel.INSTANCE);

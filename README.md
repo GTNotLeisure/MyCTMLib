@@ -18,6 +18,7 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
       "repeater": true,
       "comparator": true
     },
+    "enableProjectRedJsonModels": true,
     "enableBeeJsonModels": true,
     "enableAe2JsonModels": {
       "drive": true,
@@ -37,6 +38,9 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
       "network_tool": true,
       "advanced_network_tool": true,
       "color_applicator": true
+    },
+    "enableAutomagyJsonModels": {
+      "redstone_inversion_torch": true
     }
   }
 }
