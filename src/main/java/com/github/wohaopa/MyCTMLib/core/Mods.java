@@ -19,6 +19,8 @@ public enum Mods implements IMod, ITargetMod {
     ThaumicEnergistics("thaumicenergistics"),
     IndustrialCraft2("IC2", "ic2.core.coremod.IC2core"),
     Gregtech("gregtech"),
+    ProjectRedIntegration("ProjRed|Integration"),
+    ProjectRedIllumination("ProjRed|Illumination"),
     Angelica("angelica", "com.gtnewhorizons.angelica.loading.AngelicaTweaker");
 
     private final String id;
