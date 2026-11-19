@@ -58,7 +58,8 @@ public final class ProjectRedTorchModelRenderer {
         vertexConstructor = null;
     }
 
-    public static boolean render(Object subject, Object operations) {        if (geometry == null || quadModelMethod == null || !isLitTorch(subject)) return false;
+    public static boolean render(Object subject, Object operations) {
+        if (geometry == null || quadModelMethod == null || !isLitTorch(subject)) return false;
         Object model = modelFor(subject);
         if (model == null) return false;
         try {
@@ -154,10 +155,8 @@ public final class ProjectRedTorchModelRenderer {
                 } else {
                     y -= cutY;
                 }
-                double u = (quad.getTexU(vertex) - sprite.getMinU())
-                    / (sprite.getMaxU() - sprite.getMinU());
-                double v = (quad.getTexV(vertex) - sprite.getMinV())
-                    / (sprite.getMaxV() - sprite.getMinV());
+                double u = (quad.getTexU(vertex) - sprite.getMinU()) / (sprite.getMaxU() - sprite.getMinU());
+                double v = (quad.getTexV(vertex) - sprite.getMinV()) / (sprite.getMaxV() - sprite.getMinV());
                 input[vertex] = new Vertex(x, y, z, u, v);
             }
             appendPolygon(vertices, clip(input, minY));

@@ -112,8 +112,9 @@ public final class ProjectRedTorchFeature {
         for (IResourcePack pack : packs) {
             if (pack == null) continue;
             try {
-                MyCTMLibMetadataSection metadata = (MyCTMLibMetadataSection) pack
-                    .getPackMetadata(((AccessorMinecraft) Minecraft.getMinecraft()).getMetadataSerializer(), "myctmlib");
+                MyCTMLibMetadataSection metadata = (MyCTMLibMetadataSection) pack.getPackMetadata(
+                    ((AccessorMinecraft) Minecraft.getMinecraft()).getMetadataSerializer(),
+                    "myctmlib");
                 if (metadata == null) continue;
                 Boolean value = metadata.getBooleanSetting(SETTING);
                 if (value != null) return value;
@@ -131,8 +132,7 @@ public final class ProjectRedTorchFeature {
                 .get(null);
             Method setter = type.getMethod(setterName, IIcon[].class);
             setter.invoke(module, (Object) icons);
-        } catch (ClassNotFoundException | LinkageError ignored) {
-        } catch (ReflectiveOperationException exception) {
+        } catch (ClassNotFoundException | LinkageError ignored) {} catch (ReflectiveOperationException exception) {
             MyCTMLib.LOG.error("Cannot replace ProjectRed torch icons in {}", className, exception);
         }
     }
@@ -144,8 +144,7 @@ public final class ProjectRedTorchFeature {
                 .get(null);
             Method setter = type.getMethod(setterName, IIcon.class);
             setter.invoke(module, icon);
-        } catch (ClassNotFoundException | LinkageError ignored) {
-        } catch (ReflectiveOperationException exception) {
+        } catch (ClassNotFoundException | LinkageError ignored) {} catch (ReflectiveOperationException exception) {
             MyCTMLib.LOG.error("Cannot replace ProjectRed torch icon in {}", className, exception);
         }
     }

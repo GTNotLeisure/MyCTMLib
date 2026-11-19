@@ -41,8 +41,8 @@ public class JsonItemModelRenderer {
     }
 
     public void renderWithOverlay(ItemRenderType type, ItemStack stack, BakedItem model, IIcon overlay) {
+        overlayRenderer.renderUnderlay(type, model, overlay);
         render(type, stack, model);
-        overlayRenderer.render(type, model, overlay);
     }
 
     public void renderGui(ItemStack stack, BakedItem model, int x, int y, float zLevel) {

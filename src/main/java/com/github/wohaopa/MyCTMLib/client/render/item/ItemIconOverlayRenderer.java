@@ -18,16 +18,16 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class ItemIconOverlayRenderer {
 
     private BakedItem cachedModel;
-    private float frontZ;
     private float backZ;
 
-    public void render(ItemRenderType type, BakedItem model, IIcon icon) {
+    public void renderUnderlay(ItemRenderType type, BakedItem model, IIcon icon) {
         if (icon == null) {
             return;
         }
         GL11.glPushAttrib(
             GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         GL11.glPushMatrix();
+        boolean depthWrite = GL11.glGetBoolean(GL11.GL_DEPTH_WRITEMASK);
         try {
             Minecraft.getMinecraft()
                 .getTextureManager()
@@ -51,11 +51,11 @@ public class ItemIconOverlayRenderer {
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
                 GL11.glDepthFunc(GL11.GL_LEQUAL);
                 GL11.glEnable(GL11.GL_CULL_FACE);
-                // Keep the badge outside the bee on both sides while retaining normal world occlusion.
-                drawQuad(icon, 0.0F, 1.0F, 0.0F, 1.0F, frontZ, false);
+                drawQuad(icon, 0.0F, 1.0F, 0.0F, 1.0F, backZ, false);
                 drawQuad(icon, 1.0F, 0.0F, 0.0F, 1.0F, backZ, true);
             }
         } finally {
+            GL11.glDepthMask(depthWrite);
             GL11.glPopMatrix();
             GL11.glPopAttrib();
         }
@@ -66,15 +66,12 @@ public class ItemIconOverlayRenderer {
             return;
         }
         float minZ = 0.0F;
-        float maxZ = 1.0F;
         for (ModelQuadView quad : model.quads()) {
             for (int vertex = 0; vertex < 4; vertex++) {
                 minZ = Math.min(minZ, quad.getZ(vertex));
-                maxZ = Math.max(maxZ, quad.getZ(vertex));
             }
         }
         backZ = minZ - 0.001F;
-        frontZ = maxZ + 0.001F;
         cachedModel = model;
     }
 
