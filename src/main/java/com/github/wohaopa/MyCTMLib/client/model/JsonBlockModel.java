@@ -1,9 +1,13 @@
 package com.github.wohaopa.MyCTMLib.client.model;
 
+import static org.joml.Math.fma;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.IIcon;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import com.google.gson.JsonParseException;
@@ -36,7 +40,18 @@ public class JsonBlockModel extends JsonItemModel {
     @Override
     protected void bakeItemSprite(ModelQuad quad, String texture) {
         // Keep shared block-face UVs continuous instead of shrinking each face independently.
-        super.bakeSprite(quad, texture);
+        IIcon sprite = Minecraft.getMinecraft()
+            .getTextureMapBlocks()
+            .getAtlasSprite(texture);
+        float minU = sprite.getMinU();
+        float minV = sprite.getMinV();
+        float width = sprite.getMaxU() - minU;
+        float height = sprite.getMaxV() - minV;
+        quad.setSprite(sprite);
+        for (int vertex = 0; vertex < 4; vertex++) {
+            quad.setTexU(vertex, fma(width, quad.getTexU(vertex) / 16.0F, minU));
+            quad.setTexV(vertex, fma(height, quad.getTexV(vertex) / 16.0F, minV));
+        }
     }
 
     public BakedBlock bakeBlock() {
