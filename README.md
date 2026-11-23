@@ -41,6 +41,16 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
     },
     "enableAutomagyJsonModels": {
       "redstone_inversion_torch": true
+    },
+    "enableForestryJsonModels": {
+      "bottler": true,
+      "carpenter": true,
+      "centrifuge": true,
+      "fermenter": true,
+      "moistener": true,
+      "squeezer": true,
+      "still": true,
+      "escritoire": true
     }
   }
 }
@@ -51,3 +61,17 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
 - Higher-priority packs override individual switches. An omitted switch can inherit a lower-priority value; use `false` to explicitly disable it. Server packs have the highest priority.
 - Redstone switches cover placed models; unlit redstone torches keep their original rendering. The old redstone settings in `config/MyCTMLib.cfg` are no longer used.
 - Bee and AE2 models require Forestry and AE2 respectively. Redstone and AE2 models fall back to their original rendering if loading fails.
+
+## Forestry machines
+
+The Forestry machines and the escritoire can be drawn from JSON models and textures bundled with this mod instead of
+Forestry's own tile entity renderers.
+
+- Covered blocks: `bottler`, `carpenter`, `centrifuge`, `fermenter`, `moistener`, `squeezer`, `still` and `escritoire`.
+- Every block is switched individually through `enableForestryJsonModels` in `pack.mcmeta`; blocks that are not enabled
+  keep their original Forestry rendering until the resource packs are reloaded.
+- The tank overlays follow the fill level of the machine and are tinted with the colour of the fluid inside.
+- A model or texture that cannot be loaded leaves the original Forestry renderer in place.
+- The models live in `assets/myctmlib/models/block/forestry` and are registered in
+  `assets/myctmlib/forestry/models.json`. Regenerate them from an exported Blockbench folder with
+  `python tools/import_forestry_models.py <folder>`.

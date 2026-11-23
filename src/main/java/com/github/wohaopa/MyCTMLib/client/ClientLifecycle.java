@@ -14,6 +14,7 @@ import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerial
 import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerializer.MyCTMLibMetadataSection;
 import com.github.wohaopa.MyCTMLib.compat.ae2.Ae2Integration;
 import com.github.wohaopa.MyCTMLib.compat.forestry.ForestryIntegration;
+import com.github.wohaopa.MyCTMLib.compat.forestry.machine.ForestryMachineIntegration;
 import com.github.wohaopa.MyCTMLib.compat.opencomputers.OpenComputersIntegration;
 import com.github.wohaopa.MyCTMLib.compat.projectred.ProjectRedTorchFeature;
 import com.github.wohaopa.MyCTMLib.core.Mods;
@@ -45,6 +46,9 @@ public class ClientLifecycle {
                 ForestryIntegration.registerResources(manager);
             }
         }
+        if (Mods.Forestry.isModLoaded()) {
+            ForestryMachineIntegration.registerResources();
+        }
     }
 
     public static void loadComplete() {
@@ -53,6 +57,7 @@ public class ClientLifecycle {
         }
         if (Mods.Forestry.isModLoaded()) {
             ForestryIntegration.registerItemRenderers();
+            ForestryMachineIntegration.registerRenderers();
             if (Mods.OpenComputers.isModLoaded()) {
                 OpenComputersIntegration.registerItemRenderer();
             }

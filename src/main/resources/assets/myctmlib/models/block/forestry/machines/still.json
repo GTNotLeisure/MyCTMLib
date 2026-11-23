@@ -1,0 +1,7 @@
+{
+  "parent": "myctmlib:block/forestry/machine",
+  "textures": {
+    "base": "myctmlib:blocks/machines/still/base",
+    "particle": "myctmlib:blocks/machines/still/particles"
+  }
+}
