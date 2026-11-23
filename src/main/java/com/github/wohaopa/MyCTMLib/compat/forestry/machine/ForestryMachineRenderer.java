@@ -9,11 +9,11 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IIcon;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import org.lwjgl.opengl.GL11;
 
+import com.github.wohaopa.MyCTMLib.client.model.JsonBlockModel.Geometry;
 import com.github.wohaopa.MyCTMLib.client.model.ModelOrientation;
 import com.github.wohaopa.MyCTMLib.client.render.block.JsonBlockModelRenderer;
 import com.github.wohaopa.MyCTMLib.compat.forestry.machine.ForestryMachineModels.Machine;
@@ -30,6 +30,7 @@ import forestry.core.tiles.IRenderableTile;
 public class ForestryMachineRenderer extends TileEntitySpecialRenderer {
 
     private static final int UNTINTED = 0xFFFFFF;
+    private static final int[] NO_TINTS = new int[0];
     public static final int UNROTATED = ModelOrientation.index(ForgeDirection.NORTH, ForgeDirection.UP);
 
     private static final ClassValue<Method> ORIENTATION = new ClassValue<>() {
@@ -47,8 +48,6 @@ public class ForestryMachineRenderer extends TileEntitySpecialRenderer {
     private final String model;
     private final TileEntitySpecialRenderer fallback;
     private final JsonBlockModelRenderer renderer = new JsonBlockModelRenderer();
-    private final int[] tints = new int[2];
-    private final IIcon[] sprites = new IIcon[2];
 
     public ForestryMachineRenderer(String model, TileEntitySpecialRenderer fallback) {
         this.model = model;
@@ -77,20 +76,21 @@ public class ForestryMachineRenderer extends TileEntitySpecialRenderer {
             if (orientation != null) front = orientation;
         }
         int orientation = ModelOrientation.index(front, ForgeDirection.UP);
-        if (ModelOrientation.ORIENTATIONS[orientation] == null) {
+        Geometry geometry = ModelOrientation.ORIENTATIONS[orientation] == null ? null
+            : machine.model()
+                .orientations()[orientation];
+        if (geometry == null) {
             if (fallback != null) fallback.renderTileEntityAt(tile, x, y, z, partialTicks);
             return;
         }
 
-        prepareTank(0, machine.resource(), resourceTank);
-        prepareTank(1, machine.product(), productTank);
         renderer.prepare(tile.getBlockType(), tile.getWorldObj(), tile.xCoord, tile.yCoord, tile.zCoord, false);
 
         Minecraft.getMinecraft()
             .getTextureManager()
             .bindTexture(TextureMap.locationBlocksTexture);
         RenderHelper.disableStandardItemLighting();
-        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_CURRENT_BIT);
         GL11.glPushMatrix();
         try {
             GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -100,21 +100,14 @@ public class ForestryMachineRenderer extends TileEntitySpecialRenderer {
             GL11.glTranslated(x, y, z);
             Tessellator tessellator = TessellatorManager.get();
             tessellator.startDrawingQuads();
-            renderer.render(
-                machine.model()
-                    .orientations()[orientation],
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                UNTINTED,
-                tints,
-                false,
-                null,
-                sprites);
+            renderer.render(geometry, 0, 0, 0, 0, 0, 0, UNTINTED, NO_TINTS, false, null);
             tessellator.draw();
+            drawTank(geometry, 0, machine.resourceTank(), resourceTank, ForestryMachineModels.RESOURCE_TANK);
+            drawTank(geometry, 1, machine.productTank(), productTank, ForestryMachineModels.PRODUCT_TANK);
+            Minecraft.getMinecraft()
+                .getTextureManager()
+                .bindTexture(TextureMap.locationBlocksTexture);
+            GL11.glColor4f(1, 1, 1, 1);
         } finally {
             GL11.glPopMatrix();
             GL11.glPopAttrib();
@@ -122,14 +115,16 @@ public class ForestryMachineRenderer extends TileEntitySpecialRenderer {
         }
     }
 
-    private void prepareTank(int index, IIcon[] levels, TankRenderInfo tank) {
-        if (levels == null) {
-            sprites[index] = null;
-            tints[index] = UNTINTED;
-            return;
-        }
-        sprites[index] = levels[clamp(tank.getLevel())];
-        tints[index] = color(tank.getFluidColor());
+    private void drawTank(Geometry geometry, int layer, boolean present, TankRenderInfo tank, String kind) {
+        if (!present) return;
+        int level = clamp(tank.getLevel());
+        Minecraft.getMinecraft()
+            .getTextureManager()
+            .bindTexture(ForestryMachineModels.tankTexture(model, kind, level));
+        Tessellator tessellator = TessellatorManager.get();
+        tessellator.startDrawingQuads();
+        renderer.renderTankLayer(geometry, layer, color(tank.getFluidColor()));
+        tessellator.draw();
     }
 
     private static ForgeDirection orientation(TileEntity tile) {

@@ -48,20 +48,11 @@ public class JsonBlockModelRenderer {
 
     public void render(Geometry model, int x, int y, int z, float dx, float dy, float dz, int baseColor, int[] tints,
         boolean emissive, IIcon override) {
-        render(model, x, y, z, dx, dy, dz, baseColor, tints, emissive, override, null);
-    }
-
-    public void render(Geometry model, int x, int y, int z, float dx, float dy, float dz, int baseColor, int[] tints,
-        boolean emissive, IIcon override, IIcon[] tintSprites) {
         Tessellator tessellator = TessellatorManager.get();
         for (int index = 0; index < model.quads().length; index++) {
             if (!visible[model.cullFaces()[index].ordinal()]) continue;
             ModelQuadView quad = model.quads()[index];
             int tint = quad.getColorIndex();
-            IIcon sprite = override;
-            if (sprite == null && tintSprites != null && tint >= 0 && tint < tintSprites.length) {
-                sprite = tintSprites[tint];
-            }
             int color = override != null ? 0xFFFFFF : tint >= 0 && tint < tints.length ? tints[tint] : baseColor;
             float shade = emissive && override == null ? 1 : model.shades()[index];
             tessellator.setColorOpaque_F(
@@ -72,10 +63,10 @@ public class JsonBlockModelRenderer {
             for (int vertex = 0; vertex < 4; vertex++) {
                 float u = quad.getTexU(vertex);
                 float v = quad.getTexV(vertex);
-                if (sprite != null) {
-                    IIcon baked = (IIcon) quad.celeritas$getSprite();
-                    u = sprite.getInterpolatedU((u - baked.getMinU()) / (baked.getMaxU() - baked.getMinU()) * 16);
-                    v = sprite.getInterpolatedV((v - baked.getMinV()) / (baked.getMaxV() - baked.getMinV()) * 16);
+                if (override != null) {
+                    IIcon sprite = (IIcon) quad.celeritas$getSprite();
+                    u = override.getInterpolatedU((u - sprite.getMinU()) / (sprite.getMaxU() - sprite.getMinU()) * 16);
+                    v = override.getInterpolatedV((v - sprite.getMinV()) / (sprite.getMaxV() - sprite.getMinV()) * 16);
                 }
                 tessellator.addVertexWithUV(
                     x + (double) (quad.getX(vertex) + dx),
@@ -83,6 +74,34 @@ public class JsonBlockModelRenderer {
                     z + (double) (quad.getZ(vertex) + dz),
                     u,
                     v);
+            }
+        }
+    }
+
+    public void renderTankLayer(Geometry model, int colorIndex, int color) {
+        Tessellator tessellator = TessellatorManager.get();
+        for (int index = 0; index < model.quads().length; index++) {
+            ModelQuadView quad = model.quads()[index];
+            if (quad.getColorIndex() != colorIndex) continue;
+            if (!visible[model.cullFaces()[index].ordinal()]) continue;
+            float shade = model.shades()[index];
+            tessellator.setColorOpaque_F(
+                (color >> 16 & 255) / 255F * shade,
+                (color >> 8 & 255) / 255F * shade,
+                (color & 255) / 255F * shade);
+            tessellator.setBrightness(light(quad, 0, 0, 0, false));
+            IIcon sprite = (IIcon) quad.celeritas$getSprite();
+            float minU = sprite.getMinU();
+            float minV = sprite.getMinV();
+            float width = sprite.getMaxU() - minU;
+            float height = sprite.getMaxV() - minV;
+            for (int vertex = 0; vertex < 4; vertex++) {
+                tessellator.addVertexWithUV(
+                    quad.getX(vertex),
+                    quad.getY(vertex),
+                    quad.getZ(vertex),
+                    (quad.getTexU(vertex) - minU) / width,
+                    (quad.getTexV(vertex) - minV) / height);
             }
         }
     }

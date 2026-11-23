@@ -1,5 +1,6 @@
 package com.github.wohaopa.MyCTMLib.compat.forestry.machine;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -9,7 +10,6 @@ import java.util.Set;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.TextureStitchEvent;
 
@@ -47,7 +47,7 @@ public class ForestryMachineModels {
         NAMES);
 
     private static final ResourceLocation MANIFEST = new ResourceLocation("myctmlib", "forestry/models.json");
-    private static final String TANK_TEXTURE = "myctmlib:blocks/machines/";
+    private static final String TANK_TEXTURE = "textures/blocks/machines/";
 
     private volatile Snapshot snapshot;
     private final Map<String, JsonBlockModel> pending = new LinkedHashMap<>();
@@ -57,8 +57,10 @@ public class ForestryMachineModels {
         return NAMES.contains(name);
     }
 
-    public static String tankTexture(String name, String tank, int level) {
-        return TANK_TEXTURE + name + "/tank_" + (RESOURCE_TANK.equals(tank) ? "res" : "prod") + "_" + level;
+    public static ResourceLocation tankTexture(String name, String tank, int level) {
+        return new ResourceLocation(
+            "myctmlib",
+            TANK_TEXTURE + name + "/tank_" + (RESOURCE_TANK.equals(tank) ? "res" : "prod") + "_" + level + ".png");
     }
 
     public Snapshot getSnapshot() {
@@ -100,20 +102,20 @@ public class ForestryMachineModels {
                     .values()) {
                     if (!texture.startsWith("#")) event.map.registerIcon(texture);
                 }
-                Set<String> tanks = new LinkedHashSet<>();
                 JsonArray declared = entry.getAsJsonArray("tanks");
+                Set<String> tanks = new LinkedHashSet<>();
                 if (declared != null) {
                     for (JsonElement tank : declared) tanks.add(tank.getAsString());
                 }
+                Set<String> present = new LinkedHashSet<>();
                 for (String tank : tanks) {
                     if (!RESOURCE_TANK.equals(tank) && !PRODUCT_TANK.equals(tank)) {
                         throw new JsonParseException("Unknown Forestry tank " + tank + " on " + name);
                     }
-                    for (int level = 0; level < TANK_LEVELS; level++) {
-                        event.map.registerIcon(tankTexture(name, tank, level));
-                    }
+                    if (hasTankTextures(manager, name, tank)) present.add(tank);
+                    else MyCTMLib.LOG.warn("Missing {} tank textures of {}; the tank stays empty", tank, name);
                 }
-                pendingTanks.put(name, tanks);
+                pendingTanks.put(name, present);
             }
         } catch (RuntimeException exception) {
             pending.clear();
@@ -144,8 +146,8 @@ public class ForestryMachineModels {
                     new Machine(
                         entry.getValue()
                             .bakeBlock(),
-                        tanks.contains(RESOURCE_TANK) ? sprites(event, name, RESOURCE_TANK) : null,
-                        tanks.contains(PRODUCT_TANK) ? sprites(event, name, PRODUCT_TANK) : null));
+                        tanks.contains(RESOURCE_TANK),
+                        tanks.contains(PRODUCT_TANK)));
             }
             snapshot = new Snapshot(Map.copyOf(models));
             MyCTMLib.LOG.info("Loaded {} Forestry machine JSON models", models.size());
@@ -157,21 +159,20 @@ public class ForestryMachineModels {
         }
     }
 
-    private IIcon[] sprites(TextureStitchEvent.Post event, String name, String tank) {
-        IIcon[] sprites = new IIcon[TANK_LEVELS];
+    private static boolean hasTankTextures(IResourceManager manager, String name, String tank) {
         for (int level = 0; level < TANK_LEVELS; level++) {
-            String texture = tankTexture(name, tank, level);
-            IIcon sprite = event.map.getAtlasSprite(texture);
-            if ("missingno".equals(sprite.getIconName())) {
-                MyCTMLib.LOG.warn("Missing Forestry {} tank texture {}; the {} tank stays empty", name, texture, tank);
-                return null;
+            try {
+                manager.getResource(tankTexture(name, tank, level))
+                    .getInputStream()
+                    .close();
+            } catch (IOException exception) {
+                return false;
             }
-            sprites[level] = sprite;
         }
-        return sprites;
+        return true;
     }
 
-    public record Machine(BakedBlock model, IIcon[] resource, IIcon[] product) {}
+    public record Machine(BakedBlock model, boolean resourceTank, boolean productTank) {}
 
     public record Snapshot(Map<String, Machine> models) {}
 }

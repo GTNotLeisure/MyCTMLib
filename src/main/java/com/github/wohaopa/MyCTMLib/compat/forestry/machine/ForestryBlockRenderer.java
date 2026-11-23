@@ -3,7 +3,6 @@ package com.github.wohaopa.MyCTMLib.compat.forestry.machine;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.util.IIcon;
 
 import org.lwjgl.opengl.GL11;
 
@@ -25,7 +24,6 @@ public class ForestryBlockRenderer implements IBlockRenderer {
     private final IBlockRenderer fallback;
     private final JsonBlockModelRenderer renderer = new JsonBlockModelRenderer();
     private final int[] tints = { UNTINTED, UNTINTED };
-    private final IIcon[] sprites = new IIcon[2];
 
     public ForestryBlockRenderer(String model, IBlockRenderer fallback) {
         this.model = model;
@@ -42,8 +40,6 @@ public class ForestryBlockRenderer implements IBlockRenderer {
             if (fallback != null) fallback.inventoryRender(x, y, z);
             return;
         }
-        sprites[0] = machine.resource() == null ? null : machine.resource()[0];
-        sprites[1] = machine.product() == null ? null : machine.product()[0];
         renderer.prepareInventory();
 
         Minecraft.getMinecraft()
@@ -73,8 +69,7 @@ public class ForestryBlockRenderer implements IBlockRenderer {
                 UNTINTED,
                 tints,
                 false,
-                null,
-                sprites);
+                null);
             tessellator.draw();
         } finally {
             GL11.glPopMatrix();
