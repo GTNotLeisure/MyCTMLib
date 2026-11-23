@@ -1,5 +1,7 @@
 package com.github.wohaopa.MyCTMLib.client.render.block;
 
+import java.util.Arrays;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
@@ -18,6 +20,10 @@ public class JsonBlockModelRenderer {
     private int interiorBrightness;
 
     public void prepare(Block block, IBlockAccess world, int x, int y, int z, RenderBlocks renderer) {
+        prepare(block, world, x, y, z, renderer.renderAllFaces);
+    }
+
+    public void prepare(Block block, IBlockAccess world, int x, int y, int z, boolean renderAllFaces) {
         brightness[6] = block.getMixedBrightnessForBlock(world, x, y, z);
         visible[6] = true;
         interiorBrightness = brightness[6];
@@ -26,12 +32,18 @@ public class JsonBlockModelRenderer {
             int ny = y + face.offsetY;
             int nz = z + face.offsetZ;
             brightness[face.ordinal()] = block.getMixedBrightnessForBlock(world, nx, ny, nz);
-            visible[face.ordinal()] = renderer.renderAllFaces || !world.getBlock(nx, ny, nz)
+            visible[face.ordinal()] = renderAllFaces || !world.getBlock(nx, ny, nz)
                 .isOpaqueCube();
             interiorBrightness = Math.max(interiorBrightness & 0xF00000, brightness[face.ordinal()] & 0xF00000)
                 | Math.max(interiorBrightness & 0xF0, brightness[face.ordinal()] & 0xF0);
         }
         if (block.getLightOpacity(world, x, y, z) < 255) interiorBrightness = brightness[6];
+    }
+
+    public void prepareInventory() {
+        Arrays.fill(brightness, 0xF000F0);
+        Arrays.fill(visible, true);
+        interiorBrightness = 0xF000F0;
     }
 
     public void render(Geometry model, int x, int y, int z, float dx, float dy, float dz, int baseColor, int[] tints,
@@ -62,6 +74,34 @@ public class JsonBlockModelRenderer {
                     z + (double) (quad.getZ(vertex) + dz),
                     u,
                     v);
+            }
+        }
+    }
+
+    public void renderTankLayer(Geometry model, int colorIndex, int color) {
+        Tessellator tessellator = TessellatorManager.get();
+        for (int index = 0; index < model.quads().length; index++) {
+            ModelQuadView quad = model.quads()[index];
+            if (quad.getColorIndex() != colorIndex) continue;
+            if (!visible[model.cullFaces()[index].ordinal()]) continue;
+            float shade = model.shades()[index];
+            tessellator.setColorOpaque_F(
+                (color >> 16 & 255) / 255F * shade,
+                (color >> 8 & 255) / 255F * shade,
+                (color & 255) / 255F * shade);
+            tessellator.setBrightness(light(quad, 0, 0, 0, false));
+            IIcon sprite = (IIcon) quad.celeritas$getSprite();
+            float minU = sprite.getMinU();
+            float minV = sprite.getMinV();
+            float width = sprite.getMaxU() - minU;
+            float height = sprite.getMaxV() - minV;
+            for (int vertex = 0; vertex < 4; vertex++) {
+                tessellator.addVertexWithUV(
+                    quad.getX(vertex),
+                    quad.getY(vertex),
+                    quad.getZ(vertex),
+                    (quad.getTexU(vertex) - minU) / width,
+                    (quad.getTexV(vertex) - minV) / height);
             }
         }
     }

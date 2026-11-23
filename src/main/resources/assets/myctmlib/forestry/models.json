@@ -1,0 +1,50 @@
+{
+  "models": {
+    "bottler": {
+      "model": "myctmlib:block/forestry/machines/bottler",
+      "tanks": [
+        "resource"
+      ]
+    },
+    "carpenter": {
+      "model": "myctmlib:block/forestry/machines/carpenter",
+      "tanks": [
+        "resource"
+      ]
+    },
+    "centrifuge": {
+      "model": "myctmlib:block/forestry/machines/centrifuge",
+      "tanks": []
+    },
+    "fermenter": {
+      "model": "myctmlib:block/forestry/machines/fermenter",
+      "tanks": [
+        "resource",
+        "product"
+      ]
+    },
+    "moistener": {
+      "model": "myctmlib:block/forestry/machines/moistener",
+      "tanks": [
+        "resource"
+      ]
+    },
+    "squeezer": {
+      "model": "myctmlib:block/forestry/machines/squeezer",
+      "tanks": [
+        "product"
+      ]
+    },
+    "still": {
+      "model": "myctmlib:block/forestry/machines/still",
+      "tanks": [
+        "resource",
+        "product"
+      ]
+    },
+    "escritoire": {
+      "model": "myctmlib:block/forestry/escritoire",
+      "tanks": []
+    }
+  }
+}

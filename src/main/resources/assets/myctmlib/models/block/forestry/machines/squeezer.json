@@ -1,0 +1,7 @@
+{
+  "parent": "myctmlib:block/forestry/machine",
+  "textures": {
+    "base": "myctmlib:blocks/machines/squeezer/base",
+    "particle": "myctmlib:blocks/machines/squeezer/particles"
+  }
+}

@@ -41,6 +41,16 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
     },
     "enableAutomagyJsonModels": {
       "redstone_inversion_torch": true
+    },
+    "enableForestryJsonModels": {
+      "bottler": true,
+      "carpenter": true,
+      "centrifuge": true,
+      "fermenter": true,
+      "moistener": true,
+      "squeezer": true,
+      "still": true,
+      "escritoire": true
     }
   }
 }
@@ -49,5 +59,5 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
 - Set each model switch to `true` or `false`. Models default to disabled when no active pack enables them.
 - Enable the pack under **Options > Resource Packs**, then press **F3 + T** to apply changes.
 - Higher-priority packs override individual switches. An omitted switch can inherit a lower-priority value; use `false` to explicitly disable it. Server packs have the highest priority.
-- Redstone switches cover placed models; unlit redstone torches keep their original rendering. The old redstone settings in `config/MyCTMLib.cfg` are no longer used.
-- Bee and AE2 models require Forestry and AE2 respectively. Redstone and AE2 models fall back to their original rendering if loading fails.
+- Redstone switches cover placed models; unlit redstone torches keep their original rendering.
+- Bee, machines in Forestry and AE2 models require Forestry and AE2 respectively. Redstone, machiens in Forestry and AE2 models fall back to their original rendering if loading fails.
