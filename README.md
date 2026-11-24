@@ -42,6 +42,12 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
     "enableAutomagyJsonModels": {
       "redstone_inversion_torch": true
     },
+    "enableGCRocketJsonModels": {
+      "rocket_tier_1": true,
+      "rocket_tier_2": true,
+      "rocket_tier_3": true,
+      "rocket_tier_4": true
+    },
     "enableForestryJsonModels": {
       "bottler": true,
       "carpenter": true,
@@ -59,5 +65,12 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
 - Set each model switch to `true` or `false`. Models default to disabled when no active pack enables them.
 - Enable the pack under **Options > Resource Packs**, then press **F3 + T** to apply changes.
 - Higher-priority packs override individual switches. An omitted switch can inherit a lower-priority value; use `false` to explicitly disable it. Server packs have the highest priority.
-- Redstone switches cover placed models; unlit redstone torches keep their original rendering.
-- Bee, machines in Forestry and AE2 models require Forestry and AE2 respectively. Redstone, machiens in Forestry and AE2 models fall back to their original rendering if loading fails.
+- Models will fall back to their original rendering if loading fails.
+
+## Credit
+
+| Model and Texture Original Repositories | License |
+| --- | --- |
+| [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) | [LGPL 3.0](https://opensource.org/license/lgpl-3-0) | 
+| [Forestry: CE](https://github.com/thedarkcolour/ForestryCE?tab=readme-ov-file)  | [LGPL 3.0](https://opensource.org/license/lgpl-3-0) |
+| [Stellaris](https://github.com/st0x0ef/stellaris) | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |

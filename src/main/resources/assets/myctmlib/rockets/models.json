@@ -1,0 +1,8 @@
+{
+ "models": {
+  "rocket_tier_1": "myctmlib:rockets/rocket_tier_1",
+  "rocket_tier_2": "myctmlib:rockets/rocket_tier_2",
+  "rocket_tier_3": "myctmlib:rockets/rocket_tier_3",
+  "rocket_tier_4": "myctmlib:rockets/rocket_tier_4"
+ }
+}

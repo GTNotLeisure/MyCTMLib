@@ -15,11 +15,14 @@ import com.github.wohaopa.MyCTMLib.client.resource.MyCTMLibMetadataSectionSerial
 import com.github.wohaopa.MyCTMLib.compat.ae2.Ae2Integration;
 import com.github.wohaopa.MyCTMLib.compat.forestry.ForestryIntegration;
 import com.github.wohaopa.MyCTMLib.compat.forestry.machine.ForestryMachineIntegration;
+import com.github.wohaopa.MyCTMLib.compat.galacticraft.GalacticraftIntegration;
+import com.github.wohaopa.MyCTMLib.compat.galacticraft.RocketModels;
 import com.github.wohaopa.MyCTMLib.compat.opencomputers.OpenComputersIntegration;
 import com.github.wohaopa.MyCTMLib.compat.projectred.ProjectRedTorchFeature;
 import com.github.wohaopa.MyCTMLib.core.Mods;
 import com.github.wohaopa.MyCTMLib.mixins.early.AccessorMinecraft;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -37,6 +40,12 @@ public class ClientLifecycle {
         MinecraftForge.EVENT_BUS.register(RedstoneRepeaterModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(RedstoneComparatorModel.INSTANCE);
         MinecraftForge.EVENT_BUS.register(ProjectRedTorchFeature.INSTANCE);
+        if (Mods.Galacticraft.isModLoaded()) {
+            MinecraftForge.EVENT_BUS.register(RocketModels.INSTANCE);
+            FMLCommonHandler.instance()
+                .bus()
+                .register(RocketModels.INSTANCE);
+        }
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             Ae2Integration.registerResources();
         }
@@ -52,6 +61,10 @@ public class ClientLifecycle {
     }
 
     public static void loadComplete() {
+        if (Mods.Galacticraft.isModLoaded()) {
+            GalacticraftIntegration.reset();
+            GalacticraftIntegration.apply();
+        }
         if (Mods.AppliedEnergistics2.isModLoaded()) {
             Ae2Integration.registerItemRenderers();
         }
