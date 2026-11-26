@@ -33,7 +33,10 @@ public class AutomagyTorchModel {
 
     private static final int UNROTATED = ModelOrientation.index(ForgeDirection.NORTH, ForgeDirection.UP);
     private static final float WALL_LIFT = 0.2F;
-    private static final float WALL_LEAN = 0.4F;
+    private static final float WALL_HEIGHT = 0.625F;
+    private static final float WALL_ANGLE = (float) Math.asin(0.4D);
+    private static final float WALL_COS = (float) Math.cos(WALL_ANGLE);
+    private static final float WALL_BASE_Y = WALL_LIFT + WALL_HEIGHT * (1.0F - WALL_COS);
 
     private volatile Snapshot snapshot;
 
@@ -84,10 +87,10 @@ public class AutomagyTorchModel {
         public static Snapshot of(BakedBlock model) {
             Geometry standing = model.orientations()[UNROTATED];
             Geometry[] wall = new Geometry[5];
-            wall[1] = shear(standing, -0.5F, 0.0F, WALL_LEAN, 0.0F);
-            wall[2] = shear(standing, 0.5F, 0.0F, -WALL_LEAN, 0.0F);
-            wall[3] = shear(standing, 0.0F, -0.5F, 0.0F, WALL_LEAN);
-            wall[4] = shear(standing, 0.0F, 0.5F, 0.0F, -WALL_LEAN);
+            wall[1] = rotate(standing, -0.5F, 0.0F, false, -WALL_ANGLE);
+            wall[2] = rotate(standing, 0.5F, 0.0F, false, WALL_ANGLE);
+            wall[3] = rotate(standing, 0.0F, -0.5F, true, WALL_ANGLE);
+            wall[4] = rotate(standing, 0.0F, 0.5F, true, -WALL_ANGLE);
             return new Snapshot(standing, wall);
         }
 
@@ -95,7 +98,9 @@ public class AutomagyTorchModel {
             return metadata >= 1 && metadata <= 4 ? wall[metadata] : standing;
         }
 
-        private static Geometry shear(Geometry base, float dx, float dz, float leanX, float leanZ) {
+        private static Geometry rotate(Geometry base, float dx, float dz, boolean aroundX, float angle) {
+            float cos = (float) Math.cos(angle);
+            float sin = (float) Math.sin(angle);
             ModelQuadView[] quads = new ModelQuadView[base.quads().length];
             float[] shades = new float[quads.length];
             ForgeDirection[] cullFaces = new ForgeDirection[quads.length];
@@ -105,10 +110,24 @@ public class AutomagyTorchModel {
                 quad.setDirectionalShading(source.hasDirectionalShading());
                 quad.setEmissiveness(source.getEmissiveness());
                 for (int vertex = 0; vertex < 4; vertex++) {
+                    float x = source.getX(vertex) - 0.5F;
                     float y = source.getY(vertex);
-                    quad.setX(vertex, source.getX(vertex) + dx + leanX * y);
-                    quad.setY(vertex, y + WALL_LIFT);
-                    quad.setZ(vertex, source.getZ(vertex) + dz + leanZ * y);
+                    float z = source.getZ(vertex) - 0.5F;
+                    float nx;
+                    float ny;
+                    float nz;
+                    if (aroundX) {
+                        nx = x;
+                        ny = y * cos - z * sin;
+                        nz = y * sin + z * cos;
+                    } else {
+                        nx = x * cos - y * sin;
+                        ny = x * sin + y * cos;
+                        nz = z;
+                    }
+                    quad.setX(vertex, nx + 0.5F + dx);
+                    quad.setY(vertex, ny + WALL_BASE_Y);
+                    quad.setZ(vertex, nz + 0.5F + dz);
                 }
                 quads[index] = quad;
                 cullFaces[index] = ForgeDirection.UNKNOWN;

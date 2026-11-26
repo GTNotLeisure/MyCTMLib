@@ -17,15 +17,19 @@ import com.gtnewhorizon.gtnhlib.client.renderer.cel.model.quad.ModelQuadView;
 public final class ProjectRedTorchModelRenderer {
 
     private static final String TORCH_INTERFACE = "mrtjp.projectred.integration.TRedstoneTorchModel";
-    private static final Map<TorchKey, Object> MODELS = new ConcurrentHashMap<>();
+    private static final Map<TorchKey, Object[]> MODELS = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Method> ON_METHODS = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Method> LIGHT_METHODS = new ConcurrentHashMap<>();
 
     private static volatile Geometry geometry;
     private static Method quadModelMethod;
     private static Method computeNormalsMethod;
+    private static Method normalsMethod;
     private static Method renderMethod;
     private static Field vertsField;
+    private static Field normalX;
+    private static Field normalY;
+    private static Field normalZ;
     private static Constructor<?> vertexConstructor;
 
     private ProjectRedTorchModelRenderer() {}
@@ -35,13 +39,18 @@ public final class ProjectRedTorchModelRenderer {
         MODELS.clear();
         Class<?> modelClass = Class.forName("codechicken.lib.render.CCModel");
         Class<?> vertexClass = Class.forName("codechicken.lib.render.Vertex5");
+        Class<?> vectorClass = Class.forName("codechicken.lib.vec.Vector3");
         Class<?> operationClass = Class.forName("codechicken.lib.render.CCRenderState$IVertexOperation");
         Class<?> operationArrayClass = java.lang.reflect.Array.newInstance(operationClass, 0)
             .getClass();
         quadModelMethod = modelClass.getMethod("quadModel", int.class);
         computeNormalsMethod = modelClass.getMethod("computeNormals");
+        normalsMethod = modelClass.getMethod("normals");
         renderMethod = modelClass.getMethod("render", operationArrayClass);
         vertsField = modelClass.getField("verts");
+        normalX = vectorClass.getField("x");
+        normalY = vectorClass.getField("y");
+        normalZ = vectorClass.getField("z");
         vertexConstructor = vertexClass
             .getConstructor(double.class, double.class, double.class, double.class, double.class);
     }
@@ -53,17 +62,23 @@ public final class ProjectRedTorchModelRenderer {
         LIGHT_METHODS.clear();
         quadModelMethod = null;
         computeNormalsMethod = null;
+        normalsMethod = null;
         renderMethod = null;
         vertsField = null;
+        normalX = null;
+        normalY = null;
+        normalZ = null;
         vertexConstructor = null;
     }
 
     public static boolean render(Object subject, Object operations) {
         if (geometry == null || quadModelMethod == null || !isLitTorch(subject)) return false;
-        Object model = modelFor(subject);
-        if (model == null) return false;
+        Object[] models = modelFor(subject);
+        if (models == null) return false;
         try {
-            renderMethod.invoke(model, operations);
+            for (Object model : models) {
+                if (model != null) renderMethod.invoke(model, operations);
+            }
             return true;
         } catch (ReflectiveOperationException exception) {
             MyCTMLib.LOG.error("Cannot render the ProjectRed lit torch JSON model", exception);
@@ -96,7 +111,7 @@ public final class ProjectRedTorchModelRenderer {
         }
     }
 
-    private static Object modelFor(Object subject) {
+    private static Object[] modelFor(Object subject) {
         try {
             Method getLightPos = LIGHT_METHODS.computeIfAbsent(subject.getClass(), type -> {
                 try {
@@ -118,19 +133,19 @@ public final class ProjectRedTorchModelRenderer {
                 .contains("FlippedRSTorchModel");
             int heightPixels = flipped ? 5 : (int) Math.round(y * 16.0D) + 2;
             TorchKey key = new TorchKey(x, z, heightPixels, flipped);
-            Object cached = MODELS.get(key);
+            Object[] cached = MODELS.get(key);
             if (cached != null) return cached;
-            Object model = buildModel(x, z, heightPixels, flipped);
-            if (model == null) return null;
-            MODELS.put(key, model);
-            return model;
+            Object[] models = buildModel(x, z, heightPixels, flipped);
+            if (models == null) return null;
+            MODELS.put(key, models);
+            return models;
         } catch (ReflectiveOperationException | RuntimeException exception) {
             MyCTMLib.LOG.error("Cannot build the ProjectRed lit torch JSON model", exception);
             return null;
         }
     }
 
-    private static Object buildModel(double lightX, double lightZ, int heightPixels, boolean flipped)
+    private static Object[] buildModel(double lightX, double lightZ, int heightPixels, boolean flipped)
         throws ReflectiveOperationException {
         ModelQuadView[] quads = geometry.quads();
         if (quads.length == 0) return null;
@@ -138,7 +153,8 @@ public final class ProjectRedTorchModelRenderer {
         double dz = lightZ - 0.5D;
         double cutY = Math.max(0, 11 - heightPixels) / 16.0D;
         double minY = flipped ? cutY : 0.0D;
-        List<Vertex> vertices = new ArrayList<>();
+        List<Vertex> body = new ArrayList<>();
+        List<Vertex> glow = new ArrayList<>();
         for (ModelQuadView quad : quads) {
             IIcon sprite = (IIcon) quad.celeritas$getSprite();
             if (sprite == null || sprite.getMaxU() == sprite.getMinU() || sprite.getMaxV() == sprite.getMinV()) {
@@ -159,9 +175,14 @@ public final class ProjectRedTorchModelRenderer {
                 double v = (quad.getTexV(vertex) - sprite.getMinV()) / (sprite.getMaxV() - sprite.getMinV());
                 input[vertex] = new Vertex(x, y, z, u, v);
             }
-            appendPolygon(vertices, clip(input, minY));
+            appendPolygon(quad.hasDirectionalShading() ? body : glow, clip(input, minY));
         }
-        if (vertices.isEmpty() || vertices.size() % 4 != 0) return null;
+        if (body.isEmpty() && glow.isEmpty()) return null;
+        return new Object[] { createModel(body, false), createModel(glow, true) };
+    }
+
+    private static Object createModel(List<Vertex> vertices, boolean flatNormals) throws ReflectiveOperationException {
+        if (vertices.isEmpty()) return null;
         Object model = quadModelMethod.invoke(null, vertices.size());
         Object[] verts = (Object[]) vertsField.get(model);
         for (int index = 0; index < vertices.size(); index++) {
@@ -169,6 +190,13 @@ public final class ProjectRedTorchModelRenderer {
             verts[index] = vertexConstructor.newInstance(vertex.x, vertex.y, vertex.z, vertex.u, vertex.v);
         }
         computeNormalsMethod.invoke(model);
+        if (flatNormals) {
+            for (Object normal : (Object[]) normalsMethod.invoke(model)) {
+                normalX.setDouble(normal, 0.0D);
+                normalY.setDouble(normal, 1.0D);
+                normalZ.setDouble(normal, 0.0D);
+            }
+        }
         return model;
     }
 

@@ -1,0 +1,5 @@
+{
+ "models": {
+  "nasa_workbench": "myctmlib:workbench/nasa_workbench"
+ }
+}
