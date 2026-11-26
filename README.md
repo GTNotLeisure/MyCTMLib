@@ -75,4 +75,4 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
 | [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) | [LGPL 3.0](https://opensource.org/license/lgpl-3-0) | 
 | [Forestry: CE](https://github.com/thedarkcolour/ForestryCE?tab=readme-ov-file)  | [LGPL 3.0](https://opensource.org/license/lgpl-3-0) |
 | [Stellaris](https://github.com/st0x0ef/stellaris) | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
-| [Galacticraft](https://github.com/TeamGalacticraft/Galacticraft) | [MIT](https://opensource.org/license/mit) |
+| [Galacticraft 5](https://github.com/TeamGalacticraft/Galacticraft) | [MIT](https://opensource.org/license/mit) |
