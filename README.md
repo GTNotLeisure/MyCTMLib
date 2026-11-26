@@ -42,11 +42,12 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
     "enableAutomagyJsonModels": {
       "redstone_inversion_torch": true
     },
-    "enableGCRocketJsonModels": {
+    "enableGCJsonModels": {
       "rocket_tier_1": true,
       "rocket_tier_2": true,
       "rocket_tier_3": true,
-      "rocket_tier_4": true
+      "rocket_tier_4": true,
+      "nasa_workbench": true
     },
     "enableForestryJsonModels": {
       "bottler": true,
@@ -74,3 +75,4 @@ Edit `pack.mcmeta` at the root of an active resource pack using UTF-8. For an ex
 | [Applied Energistics 2](https://github.com/AppliedEnergistics/Applied-Energistics-2) | [LGPL 3.0](https://opensource.org/license/lgpl-3-0) | 
 | [Forestry: CE](https://github.com/thedarkcolour/ForestryCE?tab=readme-ov-file)  | [LGPL 3.0](https://opensource.org/license/lgpl-3-0) |
 | [Stellaris](https://github.com/st0x0ef/stellaris) | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
+| [Galacticraft](https://github.com/TeamGalacticraft/Galacticraft) | [MIT](https://opensource.org/license/mit) |
