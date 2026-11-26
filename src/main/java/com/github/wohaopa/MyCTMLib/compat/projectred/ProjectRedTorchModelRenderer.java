@@ -181,8 +181,7 @@ public final class ProjectRedTorchModelRenderer {
         return new Object[] { createModel(body, false), createModel(glow, true) };
     }
 
-    private static Object createModel(List<Vertex> vertices, boolean flatNormals)
-        throws ReflectiveOperationException {
+    private static Object createModel(List<Vertex> vertices, boolean flatNormals) throws ReflectiveOperationException {
         if (vertices.isEmpty()) return null;
         Object model = quadModelMethod.invoke(null, vertices.size());
         Object[] verts = (Object[]) vertsField.get(model);

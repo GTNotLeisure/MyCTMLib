@@ -24,12 +24,8 @@ public final class GalacticraftModels {
     public static final List<String> ROCKETS = List
         .of("rocket_tier_1", "rocket_tier_2", "rocket_tier_3", "rocket_tier_4");
 
-    public static final List<String> KEYS = List.of(
-        "rocket_tier_1",
-        "rocket_tier_2",
-        "rocket_tier_3",
-        "rocket_tier_4",
-        NASA_WORKBENCH);
+    public static final List<String> KEYS = List
+        .of("rocket_tier_1", "rocket_tier_2", "rocket_tier_3", "rocket_tier_4", NASA_WORKBENCH);
 
     public static final ResourcePackFeatureGroup FEATURE = new ResourcePackFeatureGroup("enableGCJsonModels", KEYS);
 
